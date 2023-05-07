@@ -1,6 +1,18 @@
 ---
-title: "Titanic_Nnet"
-date: "2023-05-07"
+title: "Titanic Adaboost"
+navbar:
+  title: "SimonRaymond"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "Titanic XGBoosting"
+      href: Titanic_XGBoosting.html
+    - text: "Titanic Adaboost"
+      href: Titanic_Adaboost.html
+    - text: "Titanic Nnet"
+      href: Titanic_Nnet.html
 ---
 
 this will be my titanic nnet page

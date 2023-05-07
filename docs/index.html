@@ -12,7 +12,7 @@
 
 <meta name="date" content="2023-04-08" />
 
-<title>ML_Housing_Alogorithms_SimonRaymond</title>
+<title>Machine Learning Codes and Process</title>
 
 <script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -239,7 +239,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">My Website</a>
+      <a class="navbar-brand" href="index.html">SimonRaymond</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -248,6 +248,15 @@ $(document).ready(function () {
 </li>
 <li>
   <a href="about.html">About</a>
+</li>
+<li>
+  <a href="Titanic_XGBoosting.html">Titanic_XGBoosting</a>
+</li>
+<li>
+  <a href="Titanic_Adaboost.html">Titanic_Adaboost</a>
+</li>
+<li>
+  <a href="Titanic_Nnet.html">Titanic_Nnet</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -261,584 +270,41 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">ML_Housing_Alogorithms_SimonRaymond</h1>
+<h1 class="title toc-ignore">Machine Learning Codes and Process</h1>
 <h4 class="date">2023-04-08</h4>
 
 </div>
 
 
-<div id="simon-raymond" class="section level1">
-<h1>Simon Raymond</h1>
-<p>Since these algorithms are only for demonstration i have run them
-only 10 times each.</p>
-<p>The models i am using are LM, CART(single tree), Bagging, Random
-Forest, GBM(boosting). In the near future i will add KNN, Neuralnet,
-AdaBoost and XGBoosting.</p>
-<p>These codes are using Housing Data from Dr. Yigit Aydede’s(SMU)
-RBootcamp. The data is relatively balenced and predictable. At a later
-time i will use unbalanced data to display under sampling, oversampling
-and Smoteing</p>
-<p>In my loops i will use Bootstrapping as much as possible instead of
-Cross Validation.</p>
-</div>
-<div id="classification" class="section level1">
-<h1>Classification</h1>
-<p>I will predict housing prices and whether or not they are in the top
-75th percentile</p>
-<pre class="r"><code>library(RBootcamp)
-data(ames)
-
-df &lt;- ames
-
-# Convert Sale_Price to a binary variable
-df$expensive &lt;- ifelse(df$Sale_Price &gt; quantile(df$Sale_Price, 0.75), 1, 0)
-df$Sale_Price &lt;- NULL</code></pre>
-<p>We see we have no NAs, our factor variables have relativly few
-levels.</p>
-<pre class="r"><code>anyNA(df)</code></pre>
-<pre><code>## [1] FALSE</code></pre>
-<p>when running my GBM boosting model it produced the following warning
-of predictors that did not have variation. these can be removed. These
-collums with no variation in factor levels will actually break down a LM
-model.</p>
-<p>Warning: variable 9: Utilities has no variation. Warning: variable
-70: Pool_Area has no variation. Warning: variable 71: Pool_QC has no
-variation. Warning: variable 5: Street has no variation.</p>
-<pre class="r"><code>df &lt;- df[ , -c(5, 9, 70, 71)]</code></pre>
-<p>I want to delete observations that have a factor level with less then
-10 observations in that level</p>
-<p>I have found when i run this code the deleted observations in the
-first run then in turn created instances of factor levels with less then
-10 observations. To fix this i have looped it twice.</p>
-<pre class="r"><code>for (i in 1:2){
-is_fac &lt;- sapply(df, is.factor)
-
-for (i in names(df)[is_fac]) {
-  count &lt;- table(df[[i]])
-  low_count &lt;- names(count[count &lt; 10])
-  df &lt;- df[!(df[[i]] %in% low_count), ]
-}
-
-}
-
-str(df)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    2694 obs. of  77 variables:
-##  $ MS_SubClass       : Factor w/ 16 levels &quot;One_Story_1946_and_Newer_All_Styles&quot;,..: 1 1 1 6 6 12 12 12 6 6 ...
-##  $ MS_Zoning         : Factor w/ 7 levels &quot;Floating_Village_Residential&quot;,..: 3 2 3 3 3 3 3 3 3 3 ...
-##  $ Lot_Frontage      : num  141 80 93 74 78 41 43 39 60 75 ...
-##  $ Lot_Area          : int  31770 11622 11160 13830 9978 4920 5005 5389 7500 10000 ...
-##  $ Alley             : Factor w/ 3 levels &quot;Gravel&quot;,&quot;No_Alley_Access&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ Lot_Shape         : Factor w/ 4 levels &quot;Regular&quot;,&quot;Slightly_Irregular&quot;,..: 2 1 1 2 2 1 2 2 1 2 ...
-##  $ Land_Contour      : Factor w/ 4 levels &quot;Bnk&quot;,&quot;HLS&quot;,&quot;Low&quot;,..: 4 4 4 4 4 4 2 4 4 4 ...
-##  $ Lot_Config        : Factor w/ 5 levels &quot;Corner&quot;,&quot;CulDSac&quot;,..: 1 5 1 5 5 5 5 5 5 1 ...
-##  $ Land_Slope        : Factor w/ 3 levels &quot;Gtl&quot;,&quot;Mod&quot;,&quot;Sev&quot;: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Neighborhood      : Factor w/ 29 levels &quot;North_Ames&quot;,&quot;College_Creek&quot;,..: 1 1 1 7 7 17 17 17 7 7 ...
-##  $ Condition_1       : Factor w/ 9 levels &quot;Artery&quot;,&quot;Feedr&quot;,..: 3 2 3 3 3 3 3 3 3 3 ...
-##  $ Condition_2       : Factor w/ 8 levels &quot;Artery&quot;,&quot;Feedr&quot;,..: 3 3 3 3 3 3 3 3 3 3 ...
-##  $ Bldg_Type         : Factor w/ 5 levels &quot;OneFam&quot;,&quot;TwoFmCon&quot;,..: 1 1 1 1 1 5 5 5 1 1 ...
-##  $ House_Style       : Factor w/ 8 levels &quot;One_and_Half_Fin&quot;,..: 3 3 3 8 8 3 3 3 8 8 ...
-##  $ Overall_Qual      : Factor w/ 10 levels &quot;Very_Poor&quot;,&quot;Poor&quot;,..: 6 5 7 5 6 8 8 8 7 6 ...
-##  $ Overall_Cond      : Factor w/ 10 levels &quot;Very_Poor&quot;,&quot;Poor&quot;,..: 5 6 5 5 6 5 5 5 5 5 ...
-##  $ Year_Built        : int  1960 1961 1968 1997 1998 2001 1992 1995 1999 1993 ...
-##  $ Year_Remod_Add    : int  1960 1961 1968 1998 1998 2001 1992 1996 1999 1994 ...
-##  $ Roof_Style        : Factor w/ 6 levels &quot;Flat&quot;,&quot;Gable&quot;,..: 4 2 4 2 2 2 2 2 2 2 ...
-##  $ Roof_Matl         : Factor w/ 8 levels &quot;ClyTile&quot;,&quot;CompShg&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ Exterior_1st      : Factor w/ 16 levels &quot;AsbShng&quot;,&quot;AsphShn&quot;,..: 4 14 4 14 14 6 7 6 14 7 ...
-##  $ Exterior_2nd      : Factor w/ 17 levels &quot;AsbShng&quot;,&quot;AsphShn&quot;,..: 11 15 4 15 15 6 7 6 15 7 ...
-##  $ Mas_Vnr_Type      : Factor w/ 5 levels &quot;BrkCmn&quot;,&quot;BrkFace&quot;,..: 5 4 4 4 2 4 4 4 4 4 ...
-##  $ Mas_Vnr_Area      : num  112 0 0 0 20 0 0 0 0 0 ...
-##  $ Exter_Qual        : Factor w/ 4 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 4 4 3 4 4 3 3 3 4 4 ...
-##  $ Exter_Cond        : Factor w/ 5 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 5 5 5 5 5 5 5 5 5 5 ...
-##  $ Foundation        : Factor w/ 6 levels &quot;BrkTil&quot;,&quot;CBlock&quot;,..: 2 2 2 3 3 3 3 3 3 3 ...
-##  $ Bsmt_Qual         : Factor w/ 6 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 6 6 6 3 6 3 3 3 6 3 ...
-##  $ Bsmt_Cond         : Factor w/ 6 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 3 6 6 6 6 6 6 6 6 6 ...
-##  $ Bsmt_Exposure     : Factor w/ 5 levels &quot;Av&quot;,&quot;Gd&quot;,&quot;Mn&quot;,..: 2 4 4 4 4 3 4 4 4 4 ...
-##  $ BsmtFin_Type_1    : Factor w/ 7 levels &quot;ALQ&quot;,&quot;BLQ&quot;,&quot;GLQ&quot;,..: 2 6 1 3 3 3 1 3 7 7 ...
-##  $ BsmtFin_SF_1      : num  2 6 1 3 3 3 1 3 7 7 ...
-##  $ BsmtFin_Type_2    : Factor w/ 7 levels &quot;ALQ&quot;,&quot;BLQ&quot;,&quot;GLQ&quot;,..: 7 4 7 7 7 7 7 7 7 7 ...
-##  $ BsmtFin_SF_2      : num  0 144 0 0 0 0 0 0 0 0 ...
-##  $ Bsmt_Unf_SF       : num  441 270 1045 137 324 ...
-##  $ Total_Bsmt_SF     : num  1080 882 2110 928 926 ...
-##  $ Heating           : Factor w/ 6 levels &quot;Floor&quot;,&quot;GasA&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ Heating_QC        : Factor w/ 5 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 2 5 1 3 1 1 1 1 3 3 ...
-##  $ Central_Air       : Factor w/ 2 levels &quot;N&quot;,&quot;Y&quot;: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ Electrical        : Factor w/ 6 levels &quot;FuseA&quot;,&quot;FuseF&quot;,..: 5 5 5 5 5 5 5 5 5 5 ...
-##  $ First_Flr_SF      : int  1656 896 2110 928 926 1338 1280 1616 1028 763 ...
-##  $ Second_Flr_SF     : int  0 0 0 701 678 0 0 0 776 892 ...
-##  $ Low_Qual_Fin_SF   : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Gr_Liv_Area       : int  1656 896 2110 1629 1604 1338 1280 1616 1804 1655 ...
-##  $ Bsmt_Full_Bath    : num  1 0 1 0 0 1 0 1 0 0 ...
-##  $ Bsmt_Half_Bath    : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Full_Bath         : int  1 1 2 2 2 2 2 2 2 2 ...
-##  $ Half_Bath         : int  0 0 1 1 1 0 0 0 1 1 ...
-##  $ Bedroom_AbvGr     : int  3 2 3 3 3 2 2 2 3 3 ...
-##  $ Kitchen_AbvGr     : int  1 1 1 1 1 1 1 1 1 1 ...
-##  $ Kitchen_Qual      : Factor w/ 5 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 5 5 1 5 3 3 3 3 3 5 ...
-##  $ TotRms_AbvGrd     : int  7 5 8 6 7 6 5 5 7 7 ...
-##  $ Functional        : Factor w/ 8 levels &quot;Maj1&quot;,&quot;Maj2&quot;,..: 8 8 8 8 8 8 8 8 8 8 ...
-##  $ Fireplaces        : int  2 0 2 1 1 0 0 1 1 1 ...
-##  $ Fireplace_Qu      : Factor w/ 6 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 3 4 6 6 3 4 4 6 6 6 ...
-##  $ Garage_Type       : Factor w/ 7 levels &quot;Attchd&quot;,&quot;Basment&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ Garage_Finish     : Factor w/ 4 levels &quot;Fin&quot;,&quot;No_Garage&quot;,..: 1 4 1 1 1 1 3 3 1 1 ...
-##  $ Garage_Cars       : num  2 1 2 2 2 2 2 2 2 2 ...
-##  $ Garage_Area       : num  528 730 522 482 470 582 506 608 442 440 ...
-##  $ Garage_Qual       : Factor w/ 6 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 6 6 6 6 6 6 6 6 6 6 ...
-##  $ Garage_Cond       : Factor w/ 6 levels &quot;Excellent&quot;,&quot;Fair&quot;,..: 6 6 6 6 6 6 6 6 6 6 ...
-##  $ Paved_Drive       : Factor w/ 3 levels &quot;Dirt_Gravel&quot;,..: 2 3 3 3 3 3 3 3 3 3 ...
-##  $ Wood_Deck_SF      : int  210 140 0 212 360 0 0 237 140 157 ...
-##  $ Open_Porch_SF     : int  62 0 0 34 36 0 82 152 60 84 ...
-##  $ Enclosed_Porch    : int  0 0 0 0 0 170 0 0 0 0 ...
-##  $ Three_season_porch: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Screen_Porch      : int  0 120 0 0 0 0 144 0 0 0 ...
-##  $ Fence             : Factor w/ 5 levels &quot;Good_Privacy&quot;,..: 5 3 5 3 5 5 5 5 5 5 ...
-##  $ Misc_Feature      : Factor w/ 6 levels &quot;Elev&quot;,&quot;Gar2&quot;,..: 3 3 3 3 3 3 3 3 3 3 ...
-##  $ Misc_Val          : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ Mo_Sold           : int  5 6 4 3 6 4 1 3 6 4 ...
-##  $ Year_Sold         : int  2010 2010 2010 2010 2010 2010 2010 2010 2010 2010 ...
-##  $ Sale_Type         : Factor w/ 10 levels &quot;COD&quot;,&quot;Con&quot;,&quot;ConLD&quot;,..: 10 10 10 10 10 10 10 10 10 10 ...
-##  $ Sale_Condition    : Factor w/ 6 levels &quot;Abnorml&quot;,&quot;AdjLand&quot;,..: 5 5 5 5 5 5 5 5 5 5 ...
-##  $ Longitude         : num  -93.6 -93.6 -93.6 -93.6 -93.6 ...
-##  $ Latitude          : num  42.1 42.1 42.1 42.1 42.1 ...
-##  $ expensive         : num  1 0 1 0 0 0 0 1 0 0 ...</code></pre>
-<p>Linear Classification (Notice how good LM is, this points to the
-relationship being very linear)</p>
-<pre class="r"><code>library(ROCR)
-df_lm &lt;- df
-n &lt;- 10
-
-LM_auc &lt;- c()
-
-for (i in 1:n){
-  
-  idx &lt;- sample(nrow(df_lm), nrow(df_lm), replace = TRUE)
-  train &lt;- df_lm[idx,]
-  test &lt;- df_lm[-idx, ]
-  
-  LM_model &lt;- lm(expensive ~., data = train)
-  
-  LM_phat &lt;- predict(LM_model, test)
-  
-  LM_pred_rocr &lt;- prediction(LM_phat, test$expensive)
-  LM_auc_ROCR &lt;- performance(LM_pred_rocr, measure = &quot;auc&quot;)
-  LM_auc[i] &lt;- LM_auc_ROCR@y.values[[1]]
-                                             
-}
-
-mean(LM_auc)</code></pre>
-<pre><code>## [1] 0.9723417</code></pre>
-<pre class="r"><code>sd(LM_auc)</code></pre>
-<pre><code>## [1] 0.005695055</code></pre>
-<pre class="r"><code>plot(LM_auc, col=&quot;red&quot;)
-abline(a = mean(LM_auc), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<p>CART Classification</p>
-<pre class="r"><code>library(rpart)
-library(ROCR)
-n &lt;- 10
-
-CART_auc &lt;- numeric()
-
-for (i in 1:n){
-  idx &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-  train &lt;- df[idx,]
-  test &lt;- df[-idx, ]
-  
-  CART_model &lt;- rpart(expensive ~., data = train)
-  
-  CART_phat &lt;- predict(CART_model, test)
-  
-  CART_pred_rocr &lt;- prediction(CART_phat, test$expensive)
-  CART_auc_ROCR &lt;- performance(CART_pred_rocr, measure = &quot;auc&quot;)
-  CART_auc[i] &lt;- CART_auc_ROCR@y.values[[1]]
-                                             
-}
-
-mean(CART_auc)</code></pre>
-<pre><code>## [1] 0.9358582</code></pre>
-<pre class="r"><code>sd(CART_auc)</code></pre>
-<pre><code>## [1] 0.01062854</code></pre>
-<pre class="r"><code>plot(CART_auc, col=&quot;red&quot;)
-abline(a = mean(CART_auc), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-<p>Bagging Classification In reality B should be much larger</p>
-<pre class="r"><code>library(randomForest)</code></pre>
-<pre><code>## randomForest 4.7-1.1</code></pre>
-<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>library(ROCR)
-
-AUC_bag &lt;- c()
-
-n &lt;- 10
-B &lt;- 50
-
-for (i in 1:n) {
-ind &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-train &lt;- df[ind, ]
-test &lt;- df[-ind, ]
-
-p = ncol(train)-1
-
-model_bag &lt;- randomForest(expensive ~.,
-ntree = B, mtry = p, minbucket = 1, data = train) #Bagged
-
-phat_bag &lt;- predict(model_bag, test)
-
-pred_rocr_bag &lt;- prediction(phat_bag, test$expensive)
-auc_ROCR_bag &lt;- performance(pred_rocr_bag, measure = &quot;auc&quot;)
-AUC_bag[i] &lt;- auc_ROCR_bag@y.values[[1]]
-}
-mean(AUC_bag)</code></pre>
-<pre><code>## [1] 0.9766595</code></pre>
-<pre class="r"><code>sd(AUC_bag)</code></pre>
-<pre><code>## [1] 0.00515988</code></pre>
-<pre class="r"><code>plot(AUC_bag, col=&quot;red&quot;)
-abline(a = mean(AUC_bag), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
-<p>Random Forest Classification In reality B should be much larger</p>
-<pre class="r"><code>library(randomForest)
-library(ROCR)
-
-AUC_rf &lt;- c()
-
-n &lt;- 10
-B &lt;- 50
-
-for (i in 1:n) {
-ind &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-train &lt;- df[ind, ]
-test &lt;- df[-ind, ]
-
-
-model_rf &lt;- randomForest(expensive ~.,
-                         ntree = B, 
-                         data = train) 
-
-phat_rf &lt;- predict(model_rf, test)
-
-pred_rocr_rf &lt;- prediction(phat_rf, test$expensive)
-auc_ROCR_rf &lt;- performance(pred_rocr_rf, measure = &quot;auc&quot;)
-AUC_rf[i] &lt;- auc_ROCR_rf@y.values[[1]]
-}
-mean(AUC_rf)</code></pre>
-<pre><code>## [1] 0.9830449</code></pre>
-<pre class="r"><code>sd(AUC_rf)</code></pre>
-<pre><code>## [1] 0.002451687</code></pre>
-<pre class="r"><code>plot(AUC_rf, col=&quot;red&quot;)
-abline(a = mean(AUC_rf), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>GBM Boosting Classification I ran this multiple times with different
-ranges and landed close to these parameters. It is important to note
-with this algoithm we can either broaden the search range or work in
-random selection for the hyperparameters outside of the loop</p>
-<pre class="r"><code>library(gbm)</code></pre>
-<pre><code>## Warning: package &#39;gbm&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loaded gbm 2.1.8.1</code></pre>
-<pre class="r"><code>h &lt;- seq(0.09, 0.10, 0.01)
-B &lt;- c(700, 750)
-D &lt;- c(1:2)
-
-runs &lt;- 10
-
-grid &lt;- as.matrix(expand.grid(D, B, h))
-
-n &lt;- nrow(grid)
-
-
-Opt_param &lt;- c()
-final_AUC_list_boost &lt;- c()
-
-for (j in 1:runs){
-  ind_boost_test &lt;- sample(nrow(df), nrow(df)*0.9)
-  model_data_boost &lt;- df[ind_boost_test, ]
-  test_boost &lt;- df[-ind_boost_test, ]
-  
-  AUC_boost_tuning &lt;- c()
-  for (i in 1:n){
-    ind_boost &lt;- sample(nrow(model_data_boost), nrow(model_data_boost), replace = TRUE)
-    train_boost &lt;- model_data_boost[ind_boost, ]
-    val_boost &lt;- model_data_boost[-ind_boost, ]
-    
-    boost_model &lt;- gbm(expensive~., 
-                       distribution =&quot;bernoulli&quot;, 
-                       n.trees= grid[i, 2],
-                       interaction.depth = grid[i, 1], 
-                       shrinkage = grid[i, 3],
-                       bag.fraction = 1,
-                       data = train_boost)
-    
-    phat_boost &lt;- predict(boost_model, n.trees = grid[i, 2], val_boost, type = &quot;response&quot;)
-    
-    pred_rocr_boost &lt;- prediction(phat_boost, val_boost$expensive)
-    auc_ROCR_boost &lt;- performance(pred_rocr_boost, measure = &quot;auc&quot;)
-    AUC_boost_tuning[i] &lt;- auc_ROCR_boost@y.values[[1]]
-  }
-  
-  best_index &lt;- which.max(AUC_boost_tuning)
-  best_AUC_boost &lt;- AUC_boost_tuning[best_index]
-  best_params_boost &lt;- grid[best_index, ]
-  
-Opt_param[[j]] &lt;- best_params_boost
-  
-  model_test &lt;- gbm(expensive~., 
-                       distribution =&quot;bernoulli&quot;, 
-                       n.trees= best_params_boost[2],
-                       interaction.depth = best_params_boost[1], 
-                       shrinkage = best_params_boost[3], 
-                       bag.fraction = 1,
-                       data = model_data_boost)
-  
-  
-  phat_final_boost &lt;- predict(model_test, test_boost, n.trees = best_params_boost[2], type = &quot;response&quot;)
-  
-  pred_rocr_final_boost &lt;- prediction(phat_final_boost, test_boost$expensive)
-  AUC_ROCR_boost_test &lt;- performance(pred_rocr_final_boost, measure = &quot;auc&quot;)
-  final_AUC_list_boost[j] &lt;- AUC_ROCR_boost_test@y.values[[1]]
-}
-
-final_AUC_boost &lt;- mean(final_AUC_list_boost)
-final_sd_boost &lt;- sd(final_AUC_list_boost)
-final_params_boost &lt;- do.call(rbind, Opt_param)
-
-
-final_params_boost</code></pre>
-<pre><code>##       Var1 Var2 Var3
-##  [1,]    1  750 0.10
-##  [2,]    2  700 0.10
-##  [3,]    1  750 0.10
-##  [4,]    2  750 0.09
-##  [5,]    2  750 0.10
-##  [6,]    2  750 0.09
-##  [7,]    1  750 0.10
-##  [8,]    2  700 0.09
-##  [9,]    1  750 0.09
-## [10,]    1  750 0.10</code></pre>
-<pre class="r"><code>final_sd_boost</code></pre>
-<pre><code>## [1] 0.005641044</code></pre>
-<pre class="r"><code>final_AUC_boost</code></pre>
-<pre><code>## [1] 0.9834459</code></pre>
-<pre class="r"><code>plot(final_AUC_list_boost, col=&quot;red&quot;)
-abline(a = mean(final_AUC_list_boost), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-</div>
-<div id="regresssion" class="section level1">
-<h1>Regresssion</h1>
-<p>I will work on the same data but instead of classification i will
-work regressionally.</p>
-<pre class="r"><code>rm(list = ls())
-
-
-library(RBootcamp)
-data(ames)
-
-df &lt;- ames</code></pre>
-<pre class="r"><code>df &lt;- df[ , -c(5, 9, 70, 71)]</code></pre>
-<pre class="r"><code>for (i in 1:2){
-factor_vars &lt;- sapply(df, is.factor)
-
-for (i in names(df)[factor_vars]) {
-  counts_table &lt;- table(df[[i]])
-  low_count &lt;- names(counts_table[counts_table &lt; 10])
-  df &lt;- df[!(df[[i]] %in% low_count), ]
-}
-}</code></pre>
-<p>Linear Regresional</p>
-<pre class="r"><code>n &lt;- 10
-
-RMSPE_LM &lt;- c()
-
-for (i in 1:n){
-  
-  idx &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-  train &lt;- df[idx,]
-  test &lt;- df[-idx, ]
-  
-  LM_model &lt;- lm(Sale_Price~., data = train)
-  
-  LM_yhat &lt;- predict(LM_model, test)
-  
-RMSPE_LM[i] &lt;- sqrt(mean((test$Sale_Price - LM_yhat)^2))
-                                             
-}
-
-mean(RMSPE_LM)</code></pre>
-<pre><code>## [1] 21279.35</code></pre>
-<pre class="r"><code>sd(RMSPE_LM)</code></pre>
-<pre><code>## [1] 869.6284</code></pre>
-<pre class="r"><code>plot(RMSPE_LM, col=&quot;red&quot;)
-abline(a = mean(RMSPE_LM), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<p>CART Regresional</p>
-<pre class="r"><code>library(rpart)
-
-n &lt;- 10
-
-RMSPE_CART &lt;- c()
-
-for (i in 1:n){
-  idx &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-  train &lt;- df[idx,]
-  test &lt;- df[-idx, ]
-  
-  CART_model &lt;- rpart(Sale_Price ~., data = train)
-  
-  CART_yhat &lt;- predict(CART_model, test)
-  
-RMSPE_CART[i] &lt;- sqrt(mean((test$Sale_Price - CART_yhat)^2))
-
-                                             
-}
-
-mean(RMSPE_CART)</code></pre>
-<pre><code>## [1] 38326.34</code></pre>
-<pre class="r"><code>sd(RMSPE_CART)</code></pre>
-<pre><code>## [1] 1286.038</code></pre>
-<pre class="r"><code>plot(RMSPE_CART, col=&quot;red&quot;)
-abline(a = mean(RMSPE_CART), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<p>Bagging Regressional</p>
-<pre class="r"><code>library(randomForest)
-
-RMSPE_bag &lt;- c()
-
-n &lt;- 10
-B &lt;- 50
-
-for (i in 1:n) {
-ind &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-train &lt;- df[ind, ]
-test &lt;- df[-ind, ]
-
-p = ncol(train)-1
-
-model_bag &lt;- randomForest(Sale_Price ~.,
-ntree = B, mtry = p, minbucket = 1, data = train) #Bagged
-
-yhat_bag &lt;- predict(model_bag, test)
-
-RMSPE_bag[i] &lt;- sqrt(mean((test$Sale_Price - yhat_bag)^2))
-
-
-}
-mean(RMSPE_bag)</code></pre>
-<pre><code>## [1] 24246.16</code></pre>
-<pre class="r"><code>sd(RMSPE_bag)</code></pre>
-<pre><code>## [1] 1522.422</code></pre>
-<pre class="r"><code>plot(RMSPE_bag, col=&quot;red&quot;)
-abline(a = mean(RMSPE_bag), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<p>Random Forest Regressional</p>
-<pre class="r"><code>library(randomForest)
-
-RMSPE_rf &lt;- c()
-
-n &lt;- 10
-B &lt;- 50
-
-for (i in 1:n) {
-ind &lt;- sample(nrow(df), nrow(df), replace = TRUE)
-train &lt;- df[ind, ]
-test &lt;- df[-ind, ]
-
-
-model_rf &lt;- randomForest(Sale_Price ~.,
-ntree = B, data = train) #rf
-
-yhat_rf &lt;- predict(model_rf, test)
-
-RMSPE_rf[i] &lt;- sqrt(mean((test$Sale_Price - yhat_rf)^2))
-
-
-}
-mean(RMSPE_rf)</code></pre>
-<pre><code>## [1] 23268.24</code></pre>
-<pre class="r"><code>sd(RMSPE_rf)</code></pre>
-<pre><code>## [1] 1074.783</code></pre>
-<pre class="r"><code>plot(RMSPE_rf, col=&quot;red&quot;)
-abline(a = mean(RMSPE_rf), b = 0, col = &quot;blue&quot;, lwd = 2) </code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<p>BOOSTING Regressional I ran this multiple times and these are the
-general parameter ranges a narrowed in on.</p>
-<pre class="r"><code>library(gbm)
-
-h &lt;- seq(0.11, 0.13, 0.01)
-B &lt;- c(500, 550)
-D &lt;- c(1:2)
-
-runs &lt;- 10
-
-grid &lt;- as.matrix(expand.grid(D, B, h))
-
-n &lt;- nrow(grid)
-
-Opt_param &lt;- c()
-RMSPE_test &lt;- c()
-
-for (j in 1:runs){
-  ind_boost_test &lt;- sample(nrow(df), nrow(df)*0.9)
-  model_data_boost &lt;- df[ind_boost_test, ]
-  test_boost &lt;- df[-ind_boost_test, ]
-  
-  RMSPE_boost_tuning &lt;- c()
-  for (i in 1:n){
-    ind_boost &lt;- sample(nrow(model_data_boost), nrow(model_data_boost), replace = TRUE)
-    train_boost &lt;- model_data_boost[ind_boost, ]
-    val_boost &lt;- model_data_boost[-ind_boost, ]
-    
-    boost_model &lt;- gbm(Sale_Price~., 
-                       distribution =&quot;gaussian&quot;, 
-                       n.trees= grid[i, 2],
-                       interaction.depth = grid[i, 1], 
-                       shrinkage = grid[i,3],
-                       bag.fraction = 1,
-                       data = train_boost)
-    
-    yhat_boost &lt;- predict(boost_model, n.trees = grid[i, 2], val_boost, type = &quot;response&quot;)
-
-    RMSPE_boost_tuning[i] &lt;- sqrt(mean((val_boost$Sale_Price - yhat_boost)^2))
-  }
-  best_RMSPE_boost &lt;- RMSPE_boost_tuning[which.min(RMSPE_boost_tuning)]
-  best_params_boost &lt;- grid[which.min(RMSPE_boost_tuning), ]
-  
-  
-  Opt_param[[j]] &lt;- best_params_boost
-  
-  model_test &lt;- gbm(Sale_Price ~., 
-                       distribution =&quot;gaussian&quot;, 
-                       n.trees= best_params_boost[2],
-                       interaction.depth = best_params_boost[1], 
-                       shrinkage = best_params_boost[3], 
-                       bag.fraction = 1,
-                       data = model_data_boost)
-  
-  yhat_boost_final &lt;- predict(model_test, n.trees = best_params_boost[2], test_boost, type = &quot;response&quot;)
-  
-  RMSPE_test[j] &lt;- sqrt(mean((test_boost$Sale_Price - yhat_boost_final)^2))
-
-}
-
-final_RMSPE_boost &lt;- mean(RMSPE_test)
-final_sd_boost &lt;- sd(RMSPE_test)
-final_params_boost &lt;- do.call(rbind, Opt_param)
-
-final_params_boost</code></pre>
-<pre><code>##       Var1 Var2 Var3
-##  [1,]    2  550 0.13
-##  [2,]    2  500 0.13
-##  [3,]    2  550 0.13
-##  [4,]    2  550 0.13
-##  [5,]    1  550 0.12
-##  [6,]    1  550 0.13
-##  [7,]    2  550 0.12
-##  [8,]    2  500 0.13
-##  [9,]    2  500 0.11
-## [10,]    2  550 0.11</code></pre>
-<pre class="r"><code>final_sd_boost</code></pre>
-<pre><code>## [1] 1844.578</code></pre>
-<pre class="r"><code>final_RMSPE_boost</code></pre>
-<pre><code>## [1] 20418</code></pre>
-<pre class="r"><code>plot(RMSPE_test, col=&quot;red&quot;)
-abline(a = mean(RMSPE_test), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<div id="simon-p.-raymond" class="section level3">
+<h3>Simon P. Raymond</h3>
+<p>For all my codes i will try to follow similar patterns.</p>
+<p>I use bootstrapping in all of my codes instead of k-fold-cv. While it
+creates more work as many functions have k-fold-cv built-in i feel it is
+worth it as it is a more robust way of getting validation samples and
+allows me to make as many as i want.</p>
+<p>For the initial train/val/test process the train/val will be
+bootrapped a number of times to ensure im getting a relatively
+representative display of what each hyperparameter actually is. Then i
+will test the best average hyperparameter (based on some metric) on a
+set aside test set. This entire process will repeat N times.</p>
+<p>Then i take the top 50% of the test scores and run the
+hyperparameters n times on the entire data. i have my code set in a way
+that they are each tested/validated on the same samples. i then take the
+mean of these scores and use them to select my best model.</p>
+<p>Then i do a final run of the winning model to present a graph of the
+metric used and its INDIVIDUAL CI.</p>
+<ul>
+<li>i want it noted i acknowledge the weakness in the fact that the set
+aside test set is very random and may not be incredibly reliable due to
+the fact that we can’t K-F-CV or B/s it since it must remain seperate.
+An idea i have had to combat this is to mabye split the test set into K
+pieces (similar to K-F-CV) but keep the model data (train and val
+sets/data) the same. i then could test each of the splintered test sets
+and take the mean of the test results for each selected hyperparameter
+set. Im not sure if this will have a different effect but i will look
+into it and test it.</li>
+</ul>
 </div>
 
 
