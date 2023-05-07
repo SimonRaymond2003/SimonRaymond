@@ -1,0 +1,6 @@
+---
+title: "Titanic_Nnet"
+date: "2023-05-07"
+---
+
+this will be my titanic nnet page

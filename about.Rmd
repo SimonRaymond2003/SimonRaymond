@@ -2,11 +2,10 @@
 title: "About Myself and This Page"
 ---
 
-My name is Simon Raymond. As of March-08-2023 i am finishing my second year at Saint Mary's University in Halifax NS. I currently have not picked a major but i am very interested in Econometric and Machine learning and intend to suit my major(s) accordingly.
+My name is Simon Raymond. As of March-08-2023 i am finishing my second year at Saint Mary's University in Halifax NS. I currently have not picked a major but i am very interested in Econometrics and Machine learning and am planning on taking a honours in economics accordingly.
 
 I intend to keep learning Machine Learning techniques outside of a classroom. This is where i will be uploading some of my generic or basic Algorithms and Practices. 
 
-All my Algorithms i intend to be easily editable. i.e. for Boosting switching from grid search to random search should be easy. I also wont have the models set to run to many times but that is also very easily changed. For Bagging and RF the B(number of trees) will be set low but that is also easily changed.
 
 Contact: simon.raymond@smu.ca
 

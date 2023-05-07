@@ -425,9 +425,9 @@ for (i in 1:n){
 }
 
 mean(LM_auc)</code></pre>
-<pre><code>## [1] 0.9733098</code></pre>
+<pre><code>## [1] 0.9723417</code></pre>
 <pre class="r"><code>sd(LM_auc)</code></pre>
-<pre><code>## [1] 0.005732939</code></pre>
+<pre><code>## [1] 0.005695055</code></pre>
 <pre class="r"><code>plot(LM_auc, col=&quot;red&quot;)
 abline(a = mean(LM_auc), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
@@ -454,9 +454,9 @@ for (i in 1:n){
 }
 
 mean(CART_auc)</code></pre>
-<pre><code>## [1] 0.9301618</code></pre>
+<pre><code>## [1] 0.9358582</code></pre>
 <pre class="r"><code>sd(CART_auc)</code></pre>
-<pre><code>## [1] 0.01501417</code></pre>
+<pre><code>## [1] 0.01062854</code></pre>
 <pre class="r"><code>plot(CART_auc, col=&quot;red&quot;)
 abline(a = mean(CART_auc), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
@@ -488,9 +488,9 @@ auc_ROCR_bag &lt;- performance(pred_rocr_bag, measure = &quot;auc&quot;)
 AUC_bag[i] &lt;- auc_ROCR_bag@y.values[[1]]
 }
 mean(AUC_bag)</code></pre>
-<pre><code>## [1] 0.9793216</code></pre>
+<pre><code>## [1] 0.9766595</code></pre>
 <pre class="r"><code>sd(AUC_bag)</code></pre>
-<pre><code>## [1] 0.003901843</code></pre>
+<pre><code>## [1] 0.00515988</code></pre>
 <pre class="r"><code>plot(AUC_bag, col=&quot;red&quot;)
 abline(a = mean(AUC_bag), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
@@ -520,9 +520,9 @@ auc_ROCR_rf &lt;- performance(pred_rocr_rf, measure = &quot;auc&quot;)
 AUC_rf[i] &lt;- auc_ROCR_rf@y.values[[1]]
 }
 mean(AUC_rf)</code></pre>
-<pre><code>## [1] 0.9831631</code></pre>
+<pre><code>## [1] 0.9830449</code></pre>
 <pre class="r"><code>sd(AUC_rf)</code></pre>
-<pre><code>## [1] 0.002991809</code></pre>
+<pre><code>## [1] 0.002451687</code></pre>
 <pre class="r"><code>plot(AUC_rf, col=&quot;red&quot;)
 abline(a = mean(AUC_rf), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
@@ -602,20 +602,20 @@ final_params_boost &lt;- do.call(rbind, Opt_param)
 
 final_params_boost</code></pre>
 <pre><code>##       Var1 Var2 Var3
-##  [1,]    2  700 0.09
-##  [2,]    1  750 0.09
+##  [1,]    1  750 0.10
+##  [2,]    2  700 0.10
 ##  [3,]    1  750 0.10
-##  [4,]    1  750 0.10
-##  [5,]    1  700 0.09
+##  [4,]    2  750 0.09
+##  [5,]    2  750 0.10
 ##  [6,]    2  750 0.09
 ##  [7,]    1  750 0.10
-##  [8,]    1  700 0.09
-##  [9,]    1  750 0.10
-## [10,]    2  700 0.09</code></pre>
+##  [8,]    2  700 0.09
+##  [9,]    1  750 0.09
+## [10,]    1  750 0.10</code></pre>
 <pre class="r"><code>final_sd_boost</code></pre>
-<pre><code>## [1] 0.005093431</code></pre>
+<pre><code>## [1] 0.005641044</code></pre>
 <pre class="r"><code>final_AUC_boost</code></pre>
-<pre><code>## [1] 0.9877094</code></pre>
+<pre><code>## [1] 0.9834459</code></pre>
 <pre class="r"><code>plot(final_AUC_list_boost, col=&quot;red&quot;)
 abline(a = mean(final_AUC_list_boost), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
@@ -661,9 +661,9 @@ RMSPE_LM[i] &lt;- sqrt(mean((test$Sale_Price - LM_yhat)^2))
 }
 
 mean(RMSPE_LM)</code></pre>
-<pre><code>## [1] 21376.07</code></pre>
+<pre><code>## [1] 21279.35</code></pre>
 <pre class="r"><code>sd(RMSPE_LM)</code></pre>
-<pre><code>## [1] 513.3282</code></pre>
+<pre><code>## [1] 869.6284</code></pre>
 <pre class="r"><code>plot(RMSPE_LM, col=&quot;red&quot;)
 abline(a = mean(RMSPE_LM), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
@@ -689,9 +689,9 @@ RMSPE_CART[i] &lt;- sqrt(mean((test$Sale_Price - CART_yhat)^2))
 }
 
 mean(RMSPE_CART)</code></pre>
-<pre><code>## [1] 39466.64</code></pre>
+<pre><code>## [1] 38326.34</code></pre>
 <pre class="r"><code>sd(RMSPE_CART)</code></pre>
-<pre><code>## [1] 1652.874</code></pre>
+<pre><code>## [1] 1286.038</code></pre>
 <pre class="r"><code>plot(RMSPE_CART, col=&quot;red&quot;)
 abline(a = mean(RMSPE_CART), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
@@ -720,9 +720,9 @@ RMSPE_bag[i] &lt;- sqrt(mean((test$Sale_Price - yhat_bag)^2))
 
 }
 mean(RMSPE_bag)</code></pre>
-<pre><code>## [1] 24880.76</code></pre>
+<pre><code>## [1] 24246.16</code></pre>
 <pre class="r"><code>sd(RMSPE_bag)</code></pre>
-<pre><code>## [1] 1861.832</code></pre>
+<pre><code>## [1] 1522.422</code></pre>
 <pre class="r"><code>plot(RMSPE_bag, col=&quot;red&quot;)
 abline(a = mean(RMSPE_bag), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
@@ -750,9 +750,9 @@ RMSPE_rf[i] &lt;- sqrt(mean((test$Sale_Price - yhat_rf)^2))
 
 }
 mean(RMSPE_rf)</code></pre>
-<pre><code>## [1] 23756.3</code></pre>
+<pre><code>## [1] 23268.24</code></pre>
 <pre class="r"><code>sd(RMSPE_rf)</code></pre>
-<pre><code>## [1] 1264.185</code></pre>
+<pre><code>## [1] 1074.783</code></pre>
 <pre class="r"><code>plot(RMSPE_rf, col=&quot;red&quot;)
 abline(a = mean(RMSPE_rf), b = 0, col = &quot;blue&quot;, lwd = 2) </code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
@@ -823,19 +823,19 @@ final_params_boost &lt;- do.call(rbind, Opt_param)
 final_params_boost</code></pre>
 <pre><code>##       Var1 Var2 Var3
 ##  [1,]    2  550 0.13
-##  [2,]    2  550 0.13
-##  [3,]    2  500 0.13
-##  [4,]    2  500 0.13
-##  [5,]    2  500 0.13
-##  [6,]    2  500 0.13
-##  [7,]    2  550 0.11
-##  [8,]    2  550 0.12
-##  [9,]    2  550 0.12
-## [10,]    2  500 0.11</code></pre>
+##  [2,]    2  500 0.13
+##  [3,]    2  550 0.13
+##  [4,]    2  550 0.13
+##  [5,]    1  550 0.12
+##  [6,]    1  550 0.13
+##  [7,]    2  550 0.12
+##  [8,]    2  500 0.13
+##  [9,]    2  500 0.11
+## [10,]    2  550 0.11</code></pre>
 <pre class="r"><code>final_sd_boost</code></pre>
-<pre><code>## [1] 1892.097</code></pre>
+<pre><code>## [1] 1844.578</code></pre>
 <pre class="r"><code>final_RMSPE_boost</code></pre>
-<pre><code>## [1] 20168.85</code></pre>
+<pre><code>## [1] 20418</code></pre>
 <pre class="r"><code>plot(RMSPE_test, col=&quot;red&quot;)
 abline(a = mean(RMSPE_test), b = 0, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>

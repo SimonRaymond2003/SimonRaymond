@@ -1,0 +1,6 @@
+---
+title: "Titanic_XGBoosting"
+date: "2023-05-07"
+---
+
+This will be the file for my titanic xgb

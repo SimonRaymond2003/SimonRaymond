@@ -1,10 +1,16 @@
-name: "my-website"
+name: "SimonRaymond"
 navbar:
-  title: "My Website"
+  title: "SimonRaymond"
   left:
     - text: "Home"
       href: index.html
     - text: "About"
       href: about.html
-      name: my-website
+    - text: "Titanic_XGBoosting"
+      href: Titanic_XGBoosting.html
+    - text: "Titanic_Adaboost"
+      href: Titanic_Adaboost.html
+    - text: "Titanic_Nnet"
+      href: Titanic_nnet.html
+      name: SimonRaymond     
 output_dir: docs
