@@ -12,7 +12,10 @@ navbar:
       href: Titanic_Adaboost.html
     - text: "Titanic_Nnet"
       href: Titanic_Nnet.html
-      name: SimonRaymond     
+      name: SimonRaymond  
+    - text: "Titanic_LM_CART_and_RF"
+      href: Titanic_LM_CART_RF.html
+      name: SimonRaymond 
 output_dir: docs
 
 

@@ -1,5 +1,5 @@
 ---
-title: "Titanic XGBoosting"
+title: "Titanic LM, CART, and RF"
 navbar:
   title: "SimonRaymond"
   left:
@@ -13,12 +13,9 @@ navbar:
       href: Titanic_Adaboost.html
     - text: "Titanic Nnet"
       href: Titanic_Nnet.html
-    - text: "Titanic LM, CART, and RF"
+    - text: "Titanic_LM_CART_RF"
       href: Titanic_LM_CART_RF.html
       name: SimonRaymond 
 ---
 
-
-
-
-This will be the file for my titanic xgb
+titanic rf lm and cart
