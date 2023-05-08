@@ -1,6 +1,6 @@
-name: "SimonRaymond"
+name: "Simon Raymond"
 navbar:
-  title: "SimonRaymond"
+  title: "Simon Raymond"
   left:
     - text: "Home"
       href: index.html

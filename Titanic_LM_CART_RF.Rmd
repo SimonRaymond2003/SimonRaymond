@@ -1,7 +1,7 @@
 ---
 title: "Titanic LM, CART, and RF"
 navbar:
-  title: "SimonRaymond"
+  title: "Simon Raymond"
   left:
     - text: "Home"
       href: index.html

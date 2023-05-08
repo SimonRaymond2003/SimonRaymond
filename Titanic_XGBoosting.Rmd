@@ -1,7 +1,7 @@
 ---
 title: "Titanic XGBoosting"
 navbar:
-  title: "SimonRaymond"
+  title: "Simon Raymond"
   left:
     - text: "Home"
       href: index.html
@@ -13,7 +13,7 @@ navbar:
       href: Titanic_Adaboost.html
     - text: "Titanic Nnet"
       href: Titanic_Nnet.html
-    - text: "Titanic LM, CART, and RF"
+    - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
       name: SimonRaymond 
 ---
