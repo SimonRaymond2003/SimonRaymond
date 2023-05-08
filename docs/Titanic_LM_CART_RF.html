@@ -10,9 +10,8 @@
 
 
 
-<meta name="date" content="2023-04-08" />
 
-<title>Machine Learning Codes and Process</title>
+<title>Titanic LM, CART, and RF</title>
 
 <script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -273,42 +272,12 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Machine Learning Codes and Process</h1>
-<h4 class="date">2023-04-08</h4>
+<h1 class="title toc-ignore">Titanic LM, CART, and RF</h1>
 
 </div>
 
 
-<div id="simon-p.-raymond" class="section level3">
-<h3>Simon P. Raymond</h3>
-<p>For all my codes i will try to follow similar patterns.</p>
-<p>I use bootstrapping in all of my codes instead of k-fold-cv. While it
-creates more work as many functions have k-fold-cv built-in i feel it is
-worth it as it is a more robust way of getting validation samples and
-allows me to make as many as i want.</p>
-<p>For the initial train/val/test process the train/val will be
-bootrapped a number of times to ensure im getting a relatively
-representative display of what each hyperparameter actually is. Then i
-will test the best average hyperparameter (based on some metric) on a
-set aside test set. This entire process will repeat N times.</p>
-<p>Then i take the top 50% of the test scores and run the
-hyperparameters n times on the entire data. i have my code set in a way
-that they are each tested/validated on the same samples. i then take the
-mean of these scores and use them to select my best model.</p>
-<p>Then i do a final run of the winning model to present a graph of the
-metric used and its INDIVIDUAL CI.</p>
-<ul>
-<li>i want it noted i acknowledge the weakness in the fact that the set
-aside test set is very random and may not be incredibly reliable due to
-the fact that we can’t K-F-CV or B/s it since it must remain seperate.
-An idea i have had to combat this is to mabye split the test set into K
-pieces (similar to K-F-CV) but keep the model data (train and val
-sets/data) the same. i then could test each of the splintered test sets
-and take the mean of the test results for each selected hyperparameter
-set. Im not sure if this will have a different effect but i will look
-into it and test it.</li>
-</ul>
-</div>
+<p>titanic rf lm and cart</p>
 
 
 
