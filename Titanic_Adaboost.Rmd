@@ -20,3 +20,299 @@ navbar:
 
 
 This wil be my titanic Adaboost page
+
+
+Download the Data
+```{r}
+library(readr)
+
+train_titanic <- read_csv("train.csv")
+
+```
+
+the columns i will use are y(Survived), Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
+```{r}
+library(dplyr)
+
+data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+data <- data %>% rename(y = Survived)
+```
+
+convert the characters to factors.
+```{r}
+char_cols <- sapply(data, is.character)
+data[, char_cols] <- lapply(data[, char_cols], factor)
+data$y <- as.numeric(data$y)
+
+```
+
+we have NAs we need to deal with
+```{r}
+colSums(is.na(data))
+```
+
+Firts i am going to predict the NAs for Age with a simple Random Forest model.
+```{r}
+na_index <- which(is.na(data$Age))#index the missing NAs
+na_data <- data[na_index, ]#create a data frame of the NAs indexed
+c_data <-data[-na_index, ]#take the complete data to c_data
+na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that only has NAs in it
+```
+
+ i will use na.roughfix() for the two missing Embarked values
+```{r}
+library(randomForest)
+c_data <- na.roughfix(c_data)# there are two NAs in embarked
+na_data <-  na.roughfix(na_data)
+```
+
+Predict our NAs
+```{r}
+library(randomForest)
+
+model_rf <- randomForest(Age ~.,
+                         ntree = 1200, 
+                         data = c_data) 
+
+pred_na <- predict(model_rf, na_data)
+```
+
+This binds our predictions to the corresponding index number for each missing NA in "data"
+```{r}
+na_n_ind <- cbind(pred_na, na_index)
+
+data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
+```
+
+finally just use na.roughfix() for the two embarked values since it is so little
+```{r}
+library(randomForest)
+
+data <- na.roughfix(data)
+colSums(is.na(data))
+```
+
+
+y must be in first collomn
+```{r}
+str(data)
+```
+
+ADABOOST in gbm
+
+* another option and thing i want to compare is JOUSboost
+
+```{r}
+
+ID <- 2:6
+S <- seq(0.005, 0.25, 0.005)
+NT <- seq(100, 2000, 100)
+
+grid <- as.matrix(expand.grid(S, NT, ID))
+```
+
+```{r, warning=FALSE, echo = FALSE}
+library(gbm)
+library(ROCR)
+
+n <- 15
+s <- 250
+v <- 5
+
+
+
+opt <- matrix(0, nrow = n, ncol = 5, dimnames = list(NULL, c("h", "B", "d", "val_AUC", "Test_AUC")))
+
+auc_t <- c()
+
+for(j in 1:n){
+   
+  ind <- sample(nrow(grid), s, replace = FALSE)
+  rgrid <- grid[ind, ]
+  
+
+  ind1 <- sample(nrow(data), nrow(data)*0.8)
+  md <- data[ind1, ]
+  test <- data[-ind1, ]
+  
+    auc_runs <- c()
+  for (i in 1:nrow(rgrid)){
+    #cat("loops: ", j, i, "\r")
+    
+    auc_tuning <- c()
+    for (p in 1:v){
+        # Initial Split
+  ind2 <- unique(sample(nrow(md), nrow(md), replace = TRUE))
+  train <- md[ind2, ]
+  val <- md[-ind2, ]
+  
+      model <- gbm(y ~ ., 
+                   distribution = "adaboost", 
+                   bag.fraction = 1, 
+                   shrinkage = rgrid[i, 1], 
+                   n.trees = rgrid[i, 2], 
+                   interaction.depth = rgrid[i, 3],
+                   n.cores = 3,
+                   verbose = FALSE,
+                   data = train
+                   )
+
+      # Predicting on the val set
+phat <- predict(model, n.trees = rgrid[i, 2], newdata = val, type = "response")
+
+  # Calculating the AUC
+  pred_rocr <- prediction(phat, val$y)
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc_tuning[p] <- auc_ROCR@y.values[[1]]
+      
+    }
+   auc_runs[i] <- mean(auc_tuning)
+  
+     BI <- which.max(auc_runs) #best hyperparameter index
+  best_AUC <- auc_runs[BI]
+  best_params <- rgrid[BI, ]
+  best_params <- as.matrix(best_params)
+  best_params <- t(best_params)
+  
+  # store the hyperparameters
+  opt[j, 1] <- best_params[1, 1]
+  opt[j, 2] <- best_params[1, 2]
+  opt[j, 3] <- best_params[1, 3]
+  opt[j, 4] <- max(auc_runs)
+  }
+  
+   model <- gbm(y ~ ., 
+                   distribution = "adaboost", 
+                   bag.fraction = 1,
+                   shrinkage = opt[j, 1], 
+                   n.trees = opt[j, 2], 
+                   interaction.depth = opt[j, 3],
+                   n.cores = 3,
+                   verbose = FALSE,
+                   data = md
+                   )
+
+      # Predicting on the test set
+ phat <- predict(model, newdata = test, n.trees = opt[j, 2], type = "response")
+
+  # Calculating the AUC
+  pred_rocr <- prediction(phat, test$y)
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc_t <- auc_ROCR@y.values[[1]]  
+    
+  opt[j, 5] <- auc_t
+}
+```
+
+
+```{r}
+th <- quantile(opt[ ,5], probs = 0.50)
+ind_opt <- which(opt[ ,5] >= th)
+
+win <- opt[ind_opt, ]
+win
+```
+
+
+```{r}
+
+library(gbm)
+library(ROCR)
+
+n <- 400
+w <- nrow(win)
+
+#collums are hyper param set
+bs_results <- matrix(0, nrow = n, ncol = w)
+
+
+
+for (i in 1:n) {
+  for (j in 1:w){
+    auc <- c()
+  #cat("loops: ", i, j, "\r")
+  
+  # Initial Split
+  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
+  md <- data[ind, ]
+  test <- data[-ind, ]
+
+  model <- gbm(y ~ ., 
+                   distribution = "adaboost", 
+                   bag.fraction = 1,
+                   shrinkage = win[j, 1], 
+                   n.trees = win[j, 2], 
+                   interaction.depth = win[j, 3],
+                   n.cores = 3,
+                   data = md
+                   )
+
+  
+  # Predicting on the test set
+  phat <- predict(model, test, n.trees = win[j, 2], type = "response")
+  
+  # Calculating the AUC
+  pred_rocr <- prediction(phat, test$y)
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc <- auc_ROCR@y.values[[1]]
+  
+ bs_results[i, j] <- auc 
+}
+}
+```
+
+```{r}
+bh_ind <- which.max(colMeans(bs_results))
+ww <- win[bh_ind, ]
+mean(bs_results[,bh_ind])
+cm <- as.vector(colMeans(bs_results))
+win <- cbind(win, av_ovr_n_runs=cm)
+```
+
+```{r, echo = FALSE}
+library(gbm)
+library(ROCR)
+
+n <- 1000
+
+ auc <- c()
+for(i in 1:n){
+# Initial Split
+  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
+  md <- data[ind, ]
+  test <- data[-ind, ]
+
+  model <- gbm(y ~ ., 
+                   distribution = "adaboost", 
+                   bag.fraction = 1,
+                   shrinkage = ww[1], 
+                   n.trees = ww[2], 
+                   interaction.depth = ww[3],
+                   n.cores = 3,
+                   data = md
+                   )
+
+  
+  # Predicting on the test set
+  phat <- predict(model, test, type = "response")
+  
+  # Calculating the AUC
+  pred_rocr <- prediction(phat, test$y)
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc[i] <- auc_ROCR@y.values[[1]]
+  }
+
+mean(auc)
+sd(auc)
+```
+
+```{r}
+
+# plot auc and mean
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+
+```
+

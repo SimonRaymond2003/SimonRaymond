@@ -278,6 +278,244 @@ $(document).ready(function () {
 
 
 <p>titanic rf lm and cart</p>
+<div id="data-prep" class="section level1">
+<h1>Data Prep</h1>
+<p>Download the Data</p>
+<pre class="r"><code>train_titanic &lt;- read.csv(&quot;train.csv&quot;)</code></pre>
+<p>the columns i will use are y (Survived), Pclass, Sex, Age, SibSp,
+Parch, Fare, Emarked as they are the easiest to work with. other
+possibilities include using the titles for names</p>
+<pre class="r"><code>library(dplyr)
+data &lt;- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+data &lt;- data %&gt;% rename(y = Survived)
+data$y &lt;- factor(data$y)</code></pre>
+<p>Convert the characters to factors.</p>
+<pre class="r"><code>char_cols &lt;- sapply(data, is.character)
+data[, char_cols] &lt;- lapply(data[, char_cols], factor)</code></pre>
+<p>We have NAs we need to deal with</p>
+<pre class="r"><code>colSums(is.na(data))</code></pre>
+<pre><code>##        y   Pclass      Sex      Age    SibSp    Parch     Fare Embarked 
+##        0        0        0      177        0        0        0        0</code></pre>
+<p>Firsts i am going to predict the NAs for Age with a simple Random
+Forest model.</p>
+<pre class="r"><code>na_index &lt;- which(is.na(data$Age))#index the missing NAs
+na_data &lt;- data[na_index, ]#create a data frame of the NAs indexed
+c_data &lt;-data[-na_index, ]#take the complete data to c_data
+na_data &lt;- na_data[, -which(names(data) == &quot;Age&quot;)] # take out the collum that only has NAs in it</code></pre>
+<p>i will use na.roughfix() for the two missing Embarked values</p>
+<pre class="r"><code>library(randomForest)
+c_data &lt;- na.roughfix(c_data)# there are two NAs in embarked
+na_data &lt;-  na.roughfix(na_data)</code></pre>
+<p>Predict our NAs</p>
+<pre class="r"><code>library(randomForest)
+
+model_rf &lt;- randomForest(Age ~.,
+                         ntree = 1200, 
+                         data = c_data) 
+
+pred_na &lt;- predict(model_rf, na_data)</code></pre>
+<p>Bind our predictions to the corresponding index number for each
+missing NA in “data”</p>
+<pre class="r"><code>na_n_ind &lt;- cbind(pred_na, na_index)
+
+data$Age[na_n_ind[, 2]] &lt;- na_n_ind[, 1]</code></pre>
+<p>finnaly just use na.roughfix() for the two embarked values since it
+is so little</p>
+<pre class="r"><code>library(randomForest)
+data &lt;- na.roughfix(data)
+colSums(is.na(data))</code></pre>
+<pre><code>##        y   Pclass      Sex      Age    SibSp    Parch     Fare Embarked 
+##        0        0        0        0        0        0        0        0</code></pre>
+<p>Now do the same for our test set</p>
+<pre class="r"><code>str(data)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    891 obs. of  8 variables:
+##  $ y       : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 2 2 2 1 1 1 1 2 2 ...
+##  $ Pclass  : int  3 1 3 1 3 3 1 3 3 2 ...
+##  $ Sex     : Factor w/ 2 levels &quot;female&quot;,&quot;male&quot;: 2 1 1 1 2 2 2 2 1 1 ...
+##  $ Age     : num  22 38 26 35 35 ...
+##  $ SibSp   : int  1 1 0 1 0 0 0 3 0 1 ...
+##  $ Parch   : int  0 0 0 0 0 0 0 1 2 0 ...
+##  $ Fare    : num  7.25 71.28 7.92 53.1 8.05 ...
+##  $ Embarked: Factor w/ 4 levels &quot;&quot;,&quot;C&quot;,&quot;Q&quot;,&quot;S&quot;: 4 2 4 4 4 3 4 4 4 2 ...</code></pre>
+</div>
+<div id="linear-model" class="section level1">
+<h1>linear Model</h1>
+<p>Y has to be numeric for lm. also i am facing a issue where for some
+of the splits not all factor levels from embarked are being selected
+which will produce a error. since lm is more of a basline i will simply
+remove embarked. i know that glm exists but i prefer lm as a
+basline.</p>
+<pre class="r"><code>data_lm &lt;- data
+data_lm$y &lt;- as.numeric(data_lm$y)
+data_lm$y &lt;- data_lm$y - 1 # bring it back to 1 and 0s
+data_lm &lt;- data_lm[, -which(colnames(data_lm) == &quot;Embarked&quot;)]</code></pre>
+<pre class="r"><code>library(foreach)
+library(doParallel)</code></pre>
+<pre><code>## Warning: package &#39;doParallel&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: iterators</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre class="r"><code>n &lt;- 33
+
+obs &lt;- nrow(data_lm) # observations
+
+trials &lt;- 1:3
+numCores &lt;- detectCores()-1
+
+cl &lt;- makeCluster(numCores)
+registerDoParallel(cl)
+
+lst &lt;- foreach(k=trials, .packages = c(&quot;ROCR&quot;)) %dopar% {
+  
+  auc &lt;- c()
+  for (i in 1:n){
+    
+    idx &lt;- sample(obs, obs, replace = TRUE)
+    train &lt;- data_lm[idx,]
+    test &lt;- data_lm[-idx, ]
+    
+    model &lt;- lm(y ~ ., data = train)
+    
+    phat &lt;- predict(model, test)
+
+    pred_rocr &lt;- prediction(phat, test$y)
+    auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
+    auc[i] &lt;- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc &lt;- unlist(lst)
+
+mean(auc)</code></pre>
+<pre><code>## [1] 0.8580565</code></pre>
+<pre class="r"><code>sd(auc)</code></pre>
+<pre><code>## [1] 0.01966225</code></pre>
+<pre class="r"><code># plot auc and mean
+plot(auc, col=&quot;red&quot;)
+abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)</code></pre>
+<p><img src="Titanic_LM_CART_RF_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<div id="cart" class="section level1">
+<h1>CART</h1>
+<p>This is using default params but once again it is mearly a baseline
+to examine</p>
+<pre class="r"><code>library(rpart)
+library(ROCR)
+library(foreach)
+library(doParallel)
+
+n &lt;- 33
+obs &lt;- nrow(data) # observations
+
+trials &lt;- 1:3
+numCores &lt;- detectCores()-1
+
+cl &lt;- makeCluster(numCores)
+registerDoParallel(cl)
+
+lst &lt;- foreach(k=trials, .packages = c(&quot;rpart&quot;, &quot;ROCR&quot;)) %dopar% {
+  
+  auc &lt;- c()
+  for (i in 1:n){
+    idx &lt;- sample(obs, obs, replace = TRUE)
+    train &lt;- data[idx,]
+    test &lt;- data[-idx, ]
+    
+    model &lt;- rpart(y ~ ., data = train, method = &quot;class&quot;)
+    
+    phat &lt;- predict(model, test, type = &quot;prob&quot;)[,2]
+    
+    pred_rocr &lt;- prediction(phat, test$y)
+    auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
+    auc[i] &lt;- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc &lt;- unlist(lst)
+
+mean(auc)</code></pre>
+<pre><code>## [1] 0.8342675</code></pre>
+<pre class="r"><code>sd(auc)</code></pre>
+<pre><code>## [1] 0.02845318</code></pre>
+<pre class="r"><code># plot auc and mean
+plot(auc, col=&quot;red&quot;)
+abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)</code></pre>
+<p><img src="Titanic_LM_CART_RF_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="random-forest" class="section level1">
+<h1>Random Forest</h1>
+<p>This is a Random Forest Algorithm that uses Parallel processing. In
+the loop ntree is set to B. I use Bootstrapping data samples instead of
+k-fold-cross-validation as it is more robust and lets me reproduce the
+model as many times as i like.</p>
+<pre class="r"><code>library(randomForest)
+library(ROCR)
+library(foreach)
+library(doParallel)
+
+B &lt;- 1200
+n &lt;- 33
+
+obs &lt;- nrow(data) # observations
+
+trials &lt;- 1:3
+numCores &lt;- detectCores()-1
+
+cl &lt;- makeCluster(numCores)
+registerDoParallel(cl)
+
+
+lst &lt;- foreach(k=trials, .packages = c(&quot;randomForest&quot;, &quot;ROCR&quot;)) %dopar% {
+  
+  auc &lt;- c()
+  for (i in 1:n){
+    
+    idx &lt;- sample(obs, obs, replace = TRUE)
+    train &lt;- data[idx,]
+    test &lt;- data[-idx, ]
+    
+    model &lt;- randomForest(y ~ ., ntree = B, data = train)
+    
+    phat &lt;- predict(model, test, type = &quot;prob&quot;)
+
+  
+    pred_rocr &lt;- prediction(phat[,2], test$y)
+    auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
+    auc[i] &lt;- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc &lt;- unlist(lst)
+
+mean(auc)</code></pre>
+<pre><code>## [1] 0.8824746</code></pre>
+<pre class="r"><code>sd(auc)</code></pre>
+<pre><code>## [1] 0.01507514</code></pre>
+<pre class="r"><code># plot auc and mean
+plot(auc, col=&quot;red&quot;)
+abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)</code></pre>
+<p><img src="Titanic_LM_CART_RF_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
 
 
 

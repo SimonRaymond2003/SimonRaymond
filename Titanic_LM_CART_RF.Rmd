@@ -19,3 +19,266 @@ navbar:
 ---
 
 titanic rf lm and cart
+
+# Data Prep
+Download the Data
+```{r}
+train_titanic <- read.csv("train.csv")
+```
+
+the columns i will use are y (Survived), Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
+```{r}
+library(dplyr)
+data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+data <- data %>% rename(y = Survived)
+data$y <- factor(data$y)
+```
+
+Convert the characters to factors. 
+```{r}
+char_cols <- sapply(data, is.character)
+data[, char_cols] <- lapply(data[, char_cols], factor)
+```
+
+We have NAs we need to deal with
+```{r}
+colSums(is.na(data))
+```
+
+Firsts i am going to predict the NAs for Age with a simple Random Forest model.
+```{r}
+na_index <- which(is.na(data$Age))#index the missing NAs
+na_data <- data[na_index, ]#create a data frame of the NAs indexed
+c_data <-data[-na_index, ]#take the complete data to c_data
+na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that only has NAs in it
+```
+
+ i will use na.roughfix() for the two missing Embarked values
+```{r}
+library(randomForest)
+c_data <- na.roughfix(c_data)# there are two NAs in embarked
+na_data <-  na.roughfix(na_data)
+```
+
+Predict our NAs
+```{r}
+library(randomForest)
+
+model_rf <- randomForest(Age ~.,
+                         ntree = 1200, 
+                         data = c_data) 
+
+pred_na <- predict(model_rf, na_data)
+```
+
+Bind our predictions to the corresponding index number for each missing NA in "data"
+```{r}
+na_n_ind <- cbind(pred_na, na_index)
+
+data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
+```
+
+finnaly just use na.roughfix() for the two embarked values since it is so little
+```{r}
+library(randomForest)
+data <- na.roughfix(data)
+colSums(is.na(data))
+```
+
+Now do the same for our test set
+```{r}
+str(data)
+```
+
+
+
+
+# linear Model
+
+Y has to be numeric for lm. also i am facing a issue where for some of the splits not all factor levels from embarked are being selected which will produce a error. since lm is more of a basline i will simply remove embarked. i know that glm exists but i prefer lm as a basline.
+```{r}
+data_lm <- data
+data_lm$y <- as.numeric(data_lm$y)
+data_lm$y <- data_lm$y - 1 # bring it back to 1 and 0s
+data_lm <- data_lm[, -which(colnames(data_lm) == "Embarked")]
+
+```
+
+```{r}
+library(foreach)
+library(doParallel)
+
+n <- 33
+
+obs <- nrow(data_lm) # observations
+
+trials <- 1:3
+numCores <- detectCores()-1
+
+cl <- makeCluster(numCores)
+registerDoParallel(cl)
+
+lst <- foreach(k=trials, .packages = c("ROCR")) %dopar% {
+  
+  auc <- c()
+  for (i in 1:n){
+    
+    idx <- sample(obs, obs, replace = TRUE)
+    train <- data_lm[idx,]
+    test <- data_lm[-idx, ]
+    
+    model <- lm(y ~ ., data = train)
+    
+    phat <- predict(model, test)
+
+    pred_rocr <- prediction(phat, test$y)
+    auc_ROCR <- performance(pred_rocr, measure = "auc")
+    auc[i] <- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc <- unlist(lst)
+
+mean(auc)
+sd(auc)
+
+```
+
+```{r}
+
+# plot auc and mean
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+
+```
+
+# CART
+
+This is using default params but once again it is mearly a baseline to examine
+```{r}
+library(rpart)
+library(ROCR)
+library(foreach)
+library(doParallel)
+
+n <- 33
+obs <- nrow(data) # observations
+
+trials <- 1:3
+numCores <- detectCores()-1
+
+cl <- makeCluster(numCores)
+registerDoParallel(cl)
+
+lst <- foreach(k=trials, .packages = c("rpart", "ROCR")) %dopar% {
+  
+  auc <- c()
+  for (i in 1:n){
+    idx <- sample(obs, obs, replace = TRUE)
+    train <- data[idx,]
+    test <- data[-idx, ]
+    
+    model <- rpart(y ~ ., data = train, method = "class")
+    
+    phat <- predict(model, test, type = "prob")[,2]
+    
+    pred_rocr <- prediction(phat, test$y)
+    auc_ROCR <- performance(pred_rocr, measure = "auc")
+    auc[i] <- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc <- unlist(lst)
+
+mean(auc)
+sd(auc)
+
+```
+
+```{r}
+
+# plot auc and mean
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+
+```
+
+
+# Random Forest
+This is a Random Forest Algorithm that uses Parallel processing. In the loop ntree is set to B. I use Bootstrapping data samples instead of k-fold-cross-validation as it is more robust and lets me reproduce the model as many times as i like.
+```{r}
+
+
+
+library(randomForest)
+library(ROCR)
+library(foreach)
+library(doParallel)
+
+B <- 1200
+n <- 33
+
+obs <- nrow(data) # observations
+
+trials <- 1:3
+numCores <- detectCores()-1
+
+cl <- makeCluster(numCores)
+registerDoParallel(cl)
+
+
+lst <- foreach(k=trials, .packages = c("randomForest", "ROCR")) %dopar% {
+  
+  auc <- c()
+  for (i in 1:n){
+    
+    idx <- sample(obs, obs, replace = TRUE)
+    train <- data[idx,]
+    test <- data[-idx, ]
+    
+    model <- randomForest(y ~ ., ntree = B, data = train)
+    
+    phat <- predict(model, test, type = "prob")
+
+  
+    pred_rocr <- prediction(phat[,2], test$y)
+    auc_ROCR <- performance(pred_rocr, measure = "auc")
+    auc[i] <- auc_ROCR@y.values[[1]]
+    
+  }
+  return(auc)
+}
+
+stopCluster(cl)
+
+# combine the results
+auc <- unlist(lst)
+
+mean(auc)
+sd(auc)
+```
+
+```{r}
+
+# plot auc and mean
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+
+```
+
