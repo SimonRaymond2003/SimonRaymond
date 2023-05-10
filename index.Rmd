@@ -4,35 +4,36 @@ title: "Machine Learning Codes and Process"
 
 ### Simon P. Raymond
 
-For all my codes i will try to follow similar patterns. 
+For all my codes, I will try to follow similar patterns.
 
-I use bootstrapping in all of my codes instead of k-fold-cv. While it creates more work as many functions have k-fold-cv built-in i feel it is worth it as it is a more robust way of getting validation samples and allows me to make as many as i want.
+I use bootstrapping in all of my codes instead of k-fold-cv. While it creates more work as many functions have k-fold-cv built-in, I feel it is worth it as it is a more robust way of getting validation samples and allows me to make as many as I want.
 
-For the initial train/val/test process the train/val will be bootrapped a number of times to ensure im getting a relatively representative display of what each hyperparameter actually is. Then i will test the best average hyperparameter (based on some metric) on a set aside test set. This entire process will repeat N times. 
+For the initial train/val/test process, the train/val will be bootstrapped a number of times to ensure I'm getting a relatively representative display of what each hyperparameter actually is. Then, I will test the best average hyperparameter (based on some metric) on a set-aside test set. This entire process will repeat N times.
 
-Then i take the top 50% (or another percentage) of the test scores and run the hyperparameters n times on the entire data. i have my code set in a way that they are each tested/validated on the same samples. I then take the mean of these scores and use them to select my best model.
+Then I take the top 50% (or another percentage) of the test scores and run the hyperparameters n times on the entire data. I have my code set in a way that they are each tested/validated on the same samples. I then take the mean of these scores and use them to select my best model.
 
-Then i do a final run of the winning model to present a graph of the metric used and its run metric CI. (using SD not SE as i want to display the range of AUC depending of data splits)
+Then I do a final run of the winning model to present a graph of the metric used and its run metric CI (using SD not SE as I want to display the range of AUC depending on data splits).
 
-Also i am evaluating models on metrics such as AUC, RMSPE, or J-statistic. While i dont currently have a analysis of actual predictions from something like a kaggle competition (meaning finding thresholds based on the confusion table). i do intend to do that in the future but i would need to improve my feature engineering.
+Also, I am evaluating models on metrics such as AUC, RMSPE, or J-statistic. While I don't currently have an analysis of actual predictions from something like a Kaggle competition (meaning finding thresholds based on the confusion table), I do intend to do that in the future, but I would need to improve my feature engineering.
 
+I want it noted that I acknowledge the weakness in the fact that the set-aside test set is very random and may not be incredibly reliable due to the fact that we can't K-F-CV or B/s it since it must remain separate. An idea I have had to combat this is to maybe split the test set into K pieces (similar to K-F-CV) but keep the model data (train and val sets/data) the same. I then could test each of the splintered test sets and take the mean of the test results for each selected hyperparameter set. I'm not sure if this will have a different effect, but I will look into it and test it.
 
-* i want it noted i acknowledge the weakness in the fact that the set aside test set is very random and may not be incredibly reliable due to the fact that we can't K-F-CV or B/s it since it must remain separate. An idea i have had to combat this is to mabye split the test set into K pieces (similar to K-F-CV) but keep the model data (train and val sets/data) the same. i then could test each of the splintered test sets and take the mean of the test results for each selected hyperparameter set. Im not sure if this will have a different effect but i will look into it and test it.
+That being said, if I run an algorithm, say 1000 times, and I am finding there are patterns in the hyperparameters selected (as there should be), then this problem starts to disappear as there would have been many similar hyperparameters that all were tested on set-aside test sets.
 
-That being said if i run a algorithm say 1000 times and i am finding there are patterns in the hyperparameters selected (as there should be) then this problem starts to disappear as there would have been many similar hyperparameters that all were tested on set aside test sets. 
+Also some codes have a reduced grid search or number of rounds due to having the run many algorithms at once. Obviously we could increase these inputs and may recieve better results.
 
-#### Terminology that i use
+### Terminology that I use
 
-* Train <- this is the data that i "build" the model on. it is the data that the model "sees"
+* Train: This is the data that I "build" the model on. It is the data that the model "sees."
 
-* Val <-  this is validation data that the model predicts upon that gives us results in terms of tuning hyperparameters. 
+* Val: This is validation data that the model predicts upon that gives us results in terms of tuning hyperparameters.
 
-* Test <- this is the set aside data that we evaluate our model upon.
+* Test: This is the set-aside data that we evaluate our model upon.
 
-* md/model_data <- this is the combination of train and val data that we build our model on during the final "test" stage of the algorithm.
+* md/model_data: This is the combination of train and val data that we build our model on during the final "test" stage of the algorithm.
 
-* auc <- Area under Curve. 
+* AUC: Area under Curve.
 
-* y <- i will always make the predicted value y 
+* y: I will always make the predicted value y.
 
- titanic <- for these examples i am using the classic ML titanic data to predict survivors
+Titanic: For these examples, I am using the classic ML Titanic data to predict survivors.

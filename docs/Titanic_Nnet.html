@@ -291,7 +291,7 @@ train_titanic &lt;- read_csv(&quot;train.csv&quot;)</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p>the collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare,
+<p>The columns i will use are y, Pclass, Sex, Age, SibSp, Parch, Fare,
 Emarked as they are the easiest to work with. other possibilities
 include using the tiltes for names</p>
 <pre class="r"><code>library(dplyr)
@@ -358,7 +358,7 @@ grid &lt;- expand.grid(size, decay, maxit)</code></pre>
 <pre class="r"><code>library(ROCR)
 library(nnet)
 
-n &lt;- 15
+n &lt;- 20
 v &lt;- 5
 s &lt;- 250
 
@@ -454,15 +454,17 @@ ind_opt &lt;- which(opt[ ,5] &gt;= th)
 
 win &lt;- opt[ind_opt, ]
 win</code></pre>
-<pre><code>##      size decay maxit   AUC_val  AUC_TEST
-## [1,]    3  0.12   800 0.8901488 0.8688993
-## [2,]    3  0.07  1450 0.8759765 0.8898476
-## [3,]    6  0.06   950 0.8801619 0.8716879
-## [4,]    6  0.18  1100 0.8856119 0.8817814
-## [5,]    5  0.15  1150 0.8906613 0.8853193
-## [6,]    6  0.11   950 0.8802141 0.8852941
-## [7,]    2  0.10   900 0.8839451 0.8619798
-## [8,]    6  0.15   950 0.8850154 0.8640386</code></pre>
+<pre><code>##       size decay maxit   AUC_val  AUC_TEST
+##  [1,]    5  0.10   850 0.8762260 0.8988539
+##  [2,]    5  0.13   600 0.8843046 0.8761062
+##  [3,]    4  0.03   900 0.8852963 0.8782157
+##  [4,]    6  0.17  1350 0.8830705 0.8674144
+##  [5,]    6  0.11   300 0.8792296 0.8852014
+##  [6,]    3  0.06   900 0.8824768 0.8836778
+##  [7,]    4  0.16   550 0.8940490 0.8773185
+##  [8,]    4  0.05  1500 0.8828757 0.9019844
+##  [9,]    6  0.10  1200 0.8930881 0.8676039
+## [10,]    6  0.16  1000 0.8860353 0.8888447</code></pre>
 <pre class="r"><code>library(nnet)
 library(ROCR)
 
@@ -506,14 +508,51 @@ for (i in 1:n) {
 <pre class="r"><code>bh_ind &lt;- which.max(colMeans(bs_results))
 ww &lt;- win[bh_ind, ]
 mean(bs_results[,bh_ind])</code></pre>
-<pre><code>## [1] 0.8676207</code></pre>
+<pre><code>## [1] 0.8686404</code></pre>
 <pre class="r"><code>cm &lt;- as.vector(colMeans(bs_results))
 win &lt;- cbind(win, av_ovr_n_runs=cm)
 ww</code></pre>
-<pre><code>##        size       decay       maxit     AUC_val    AUC_TEST 
-##   6.0000000   0.1100000 950.0000000   0.8802141   0.8852941</code></pre>
-<pre><code>## [1] 0.8671661</code></pre>
-<pre><code>## [1] 0.01832389</code></pre>
+<pre><code>##         size        decay        maxit      AUC_val     AUC_TEST 
+##    6.0000000    0.1700000 1350.0000000    0.8830705    0.8674144</code></pre>
+<pre class="r"><code>library(gbm)
+library(ROCR)
+
+n &lt;- 1000
+
+
+
+
+
+ auc &lt;- c()
+for(i in 1:n){
+    #cat(&quot;loops: &quot;, i, &quot;\r&quot;)
+  
+# Initial Split
+  ind &lt;- unique(sample(nrow(data), nrow(data), replace = TRUE))
+  md &lt;- data[ind, ]
+  test &lt;- data[-ind, ]
+
+   model &lt;- nnet(y ~ ., 
+                data = md, 
+                trace = FALSE, 
+                size = ww[1], 
+                decay = ww[2], 
+                maxit = ww[3]
+                )
+  
+  # Predicting on the test set
+  phat &lt;- predict(model, test)
+  
+  # Calculating the AUC
+  pred_rocr &lt;- prediction(phat, test$y)
+  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
+  auc[i] &lt;- auc_ROCR@y.values[[1]]
+  }
+
+mean(auc)</code></pre>
+<pre><code>## [1] 0.865119</code></pre>
+<pre class="r"><code>sd(auc)</code></pre>
+<pre><code>## [1] 0.01793909</code></pre>
 <pre class="r"><code># plot auc and mean
 plot(auc, col=&quot;red&quot;)
 abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)

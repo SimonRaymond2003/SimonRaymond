@@ -23,15 +23,15 @@ This wil be my titanic Adaboost page
 
 
 Download the Data
-```{r}
+```{r, warning=FALSE}
 library(readr)
 
 train_titanic <- read_csv("train.csv")
 
 ```
 
-the columns i will use are y(Survived), Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
-```{r}
+the columns i will use are y(Survived), Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
+```{r, warning=FALSE}
 library(dplyr)
 
 data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
@@ -39,7 +39,7 @@ data <- data %>% rename(y = Survived)
 ```
 
 convert the characters to factors.
-```{r}
+```{r, warning=FALSE}
 char_cols <- sapply(data, is.character)
 data[, char_cols] <- lapply(data[, char_cols], factor)
 data$y <- as.numeric(data$y)
@@ -47,12 +47,12 @@ data$y <- as.numeric(data$y)
 ```
 
 we have NAs we need to deal with
-```{r}
+```{r, warning=FALSE}
 colSums(is.na(data))
 ```
 
-Firts i am going to predict the NAs for Age with a simple Random Forest model.
-```{r}
+First i am going to predict the NAs for Age with a simple Random Forest model.
+```{r, warning=FALSE}
 na_index <- which(is.na(data$Age))#index the missing NAs
 na_data <- data[na_index, ]#create a data frame of the NAs indexed
 c_data <-data[-na_index, ]#take the complete data to c_data
@@ -60,14 +60,14 @@ na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that on
 ```
 
  i will use na.roughfix() for the two missing Embarked values
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 c_data <- na.roughfix(c_data)# there are two NAs in embarked
 na_data <-  na.roughfix(na_data)
 ```
 
 Predict our NAs
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 
 model_rf <- randomForest(Age ~.,
@@ -78,14 +78,14 @@ pred_na <- predict(model_rf, na_data)
 ```
 
 This binds our predictions to the corresponding index number for each missing NA in "data"
-```{r}
+```{r, warning=FALSE}
 na_n_ind <- cbind(pred_na, na_index)
 
 data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
 ```
 
 finally just use na.roughfix() for the two embarked values since it is so little
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 
 data <- na.roughfix(data)
@@ -94,15 +94,15 @@ colSums(is.na(data))
 
 
 y must be in first collomn
-```{r}
+```{r, warning=FALSE}
 str(data)
 ```
 
 ADABOOST in gbm
 
-* another option and thing i want to compare is JOUSboost
+* Another option and thing i want to compare is JOUSboost
 
-```{r}
+```{r, warning=FALSE}
 
 ID <- 2:6
 S <- seq(0.005, 0.25, 0.005)
@@ -111,11 +111,11 @@ NT <- seq(100, 2000, 100)
 grid <- as.matrix(expand.grid(S, NT, ID))
 ```
 
-```{r, warning=FALSE, echo = FALSE}
+```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
 
-n <- 15
+n <- 20
 s <- 250
 v <- 5
 
@@ -205,7 +205,7 @@ phat <- predict(model, n.trees = rgrid[i, 2], newdata = val, type = "response")
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 th <- quantile(opt[ ,5], probs = 0.50)
 ind_opt <- which(opt[ ,5] >= th)
 
@@ -214,7 +214,7 @@ win
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 
 library(gbm)
 library(ROCR)
@@ -244,6 +244,7 @@ for (i in 1:n) {
                    n.trees = win[j, 2], 
                    interaction.depth = win[j, 3],
                    n.cores = 3,
+                   verbose = FALSE,
                    data = md
                    )
 
@@ -261,7 +262,7 @@ for (i in 1:n) {
 }
 ```
 
-```{r}
+```{r, warning=FALSE}
 bh_ind <- which.max(colMeans(bs_results))
 ww <- win[bh_ind, ]
 mean(bs_results[,bh_ind])
@@ -269,7 +270,7 @@ cm <- as.vector(colMeans(bs_results))
 win <- cbind(win, av_ovr_n_runs=cm)
 ```
 
-```{r, echo = FALSE}
+```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
 
@@ -289,12 +290,13 @@ for(i in 1:n){
                    n.trees = ww[2], 
                    interaction.depth = ww[3],
                    n.cores = 3,
+                   verbose = FALSE,
                    data = md
                    )
 
   
   # Predicting on the test set
-  phat <- predict(model, test, type = "response")
+  phat <- predict(model, test, n.trees = ww[2], type = "response")
   
   # Calculating the AUC
   pred_rocr <- prediction(phat, test$y)
@@ -306,7 +308,7 @@ mean(auc)
 sd(auc)
 ```
 
-```{r}
+```{r, warning=FALSE}
 
 # plot auc and mean
 plot(auc, col="red")

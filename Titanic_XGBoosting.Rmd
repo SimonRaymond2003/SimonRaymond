@@ -25,14 +25,14 @@ This will be the file for my titanic xgb
 
 # Data Prep
 Download the Data
-```{r}
+```{r, warning=FALSE}
 library(readr)
 
 train_titanic <- read_csv("train.csv")
 ```
 
 The collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
-```{r}
+```{r, warning=FALSE}
 library(dplyr)
 
 data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
@@ -43,7 +43,7 @@ data <- data %>% rename(y = Survived)
 ```
 
 convert the characters to factors. convert our y variable to numeric for XGBoosting
-```{r}
+```{r, warning=FALSE}
 char_cols <- sapply(data, is.character)
 data[, char_cols] <- lapply(data[, char_cols], factor)
 data$y <- as.numeric(data$y)
@@ -51,12 +51,12 @@ data$y <- as.numeric(data$y)
 ```
 
 we have NAs we need to deal with
-```{r}
+```{r, warning=FALSE}
 colSums(is.na(data))
 ```
 
 First i am going to predict the NAs for Age with a simple Random Forest model.
-```{r}
+```{r, warning=FALSE}
 na_index <- which(is.na(data$Age))#index the missing NAs
 na_data <- data[na_index, ]#create a data frame of the NAs indexed
 c_data <-data[-na_index, ]#take the complete data to c_data
@@ -64,7 +64,7 @@ na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that on
 ```
 
  i will use na.roughfix() for the two missing Embarked values
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 
 c_data <- na.roughfix(c_data)# there are two NAs in embarked
@@ -72,7 +72,7 @@ na_data <-  na.roughfix(na_data)
 ```
 
 Predict our NAs
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 
 model_rf <- randomForest(Age ~.,
@@ -83,21 +83,21 @@ pred_na <- predict(model_rf, na_data)
 ```
 
 This binds our predictions to the corresponding index number for each missing NA in "data"
-```{r}
+```{r, warning=FALSE}
 na_n_ind <- cbind(pred_na, na_index)
 
 data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
 ```
 
 finnaly just use na.roughfix() for the two embarked values in the actualy data sets
-```{r}
+```{r, warning=FALSE}
 library(randomForest)
 
 data <- na.roughfix(data)
 colSums(is.na(data))
 ```
 
-```{r}
+```{r, warning=FALSE}
 str(data)
 ```
 
@@ -114,7 +114,7 @@ Note that the hyperparameters being tuned are nrounds, max_depth, eta, subsample
 Overall, this code can be useful for finding the best set of hyperparameters for an XGBoost model. The bootstrapping approach can help mitigate overfitting, and the use of a pre-defined grid can help avoid an exhaustive search of the hyperparameter space.
 
 This grid is very limited because of processing power. it is relativly tuned.
-```{r}
+```{r, warning=FALSE}
 grid <- expand.grid(
   nrounds = seq(300, 300, by = 100),
   max_depth = seq(13, 16, by = 2),
@@ -128,13 +128,13 @@ grid <- expand.grid(
 )
 ```
 
-```{r}
+```{r, warning=FALSE}
 library(xgboost)
 library(ROCR)
 
 start_time <- Sys.time()
 
-n <- 15
+n <- 20
 s <- 250
 v <- 5
 esr <- 10
@@ -291,7 +291,7 @@ NOTE: A weakness is that the test run is one split or rather one n run. this mea
 Im want to do more reasearch on if there is a way boostrap samples for a average and not overfit the hyperparameters/model
 
 This takes the top 50 percent of hyperparameters based on there 
-```{r}
+```{r, warning=FALSE}
 
 th <- quantile(opt[,11], probs = 0.50)
 ind_opt <- which(opt[,11] >= th)
@@ -301,7 +301,7 @@ win
 ```
 
 This code is using bootstrapping and runs the best hyperparamters that we picked before. it tests the selected hyper parameters n times. since we are not tuning in it we can use all of the data in it.
-```{r}
+```{r, warning=FALSE}
 library(xgboost)
 library(ROCR)
 
@@ -367,7 +367,7 @@ for (i in 1:n) {
 ```
 
 This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the corelating hyperparameters into ww.
-```{r}
+```{r, warning=FALSE}
 bh_ind <- which.max(colMeans(bs_results))
 ww <- win[bh_ind, ]
 mean(bs_results[,bh_ind])
@@ -378,7 +378,7 @@ win <- cbind(win, av_ovr_n_runs=cm)
 
 
 This is the final run. it uses bootrapping and runs n times.
-```{r}
+```{r, warning=FALSE}
 library(xgboost)
 library(ROCR)
 
@@ -445,7 +445,7 @@ for (i in 1:n) {
 This presents the mean and 95% CI of the model runs
 Note: we are representing individual observations/model runs so we use SD not SE.   
                              
-```{r}
+```{r, warning=FALSE}
 
 # plot auc and mean
 plot(auc, col="red")

@@ -28,7 +28,7 @@ library(readr)
 train_titanic <- read_csv("train.csv")
 ```
 
-the collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the tiltes for names 
+The columns i will use are y, Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the tiltes for names 
 ```{r}
 library(dplyr)
 
@@ -107,7 +107,7 @@ grid <- expand.grid(size, decay, maxit)
 library(ROCR)
 library(nnet)
 
-n <- 15
+n <- 20
 v <- 5
 s <- 250
 
@@ -263,7 +263,7 @@ win <- cbind(win, av_ovr_n_runs=cm)
 ww
 ```
 
-```{r, echo = FALSE}
+```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
 
@@ -303,7 +303,7 @@ mean(auc)
 sd(auc)
 ```
 
-```{r}
+```{r, warning=FALSE}
 
 # plot auc and mean
 plot(auc, col="red")

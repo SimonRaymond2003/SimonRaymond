@@ -392,7 +392,6 @@ relativly tuned.</p>
   lambda = seq(0, 1, by = 1)
 )</code></pre>
 <pre class="r"><code>library(xgboost)</code></pre>
-<pre><code>## Warning: package &#39;xgboost&#39; was built under R version 4.2.3</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;xgboost&#39;</code></pre>
 <pre><code>## The following object is masked from &#39;package:dplyr&#39;:
@@ -402,7 +401,7 @@ relativly tuned.</p>
 
 start_time &lt;- Sys.time()
 
-n &lt;- 15
+n &lt;- 20
 s &lt;- 250
 v &lt;- 5
 esr &lt;- 10
@@ -548,7 +547,7 @@ end_time &lt;- Sys.time()
 elapsed_time &lt;- end_time - start_time
 
 elapsed_time</code></pre>
-<pre><code>## Time difference of 38.43334 mins</code></pre>
+<pre><code>## Time difference of 51.67212 mins</code></pre>
 <p>This code will index and assign the best hyper parameters from opt
 into a matrix called win.</p>
 <p>NOTE: A weakness is that the test run is one split or rather one n
@@ -565,24 +564,28 @@ ind_opt &lt;- which(opt[,11] &gt;= th)
 
 win &lt;- opt[ind_opt, ]
 win</code></pre>
-<pre><code>##      nrounds max_depth  eta subsample colsampe_bytree gamma min_child_weight
-## [1,]     300        13 0.16       0.8             0.8     2                0
-## [2,]     300        15 0.14       0.7             0.7     2                0
-## [3,]     300        15 0.20       0.7             0.7     2                2
-## [4,]     300        13 0.13       0.8             0.8     1                1
-## [5,]     300        15 0.16       0.8             0.7     2                1
-## [6,]     300        15 0.12       0.7             0.7     1                0
-## [7,]     300        15 0.18       0.7             0.7     1                1
-## [8,]     300        13 0.17       0.7             0.7     1                1
-##      alpha lambda   val_AUC  Test_AUC
-## [1,]     0      1 0.9010389 0.9171109
-## [2,]     0      1 0.8990525 0.9332273
-## [3,]     0      1 0.8997959 0.9092143
-## [4,]     1      0 0.9090530 0.9009009
-## [5,]     0      1 0.9049610 0.8996047
-## [6,]     0      1 0.9044944 0.9142532
-## [7,]     1      0 0.8983543 0.9091381
-## [8,]     0      1 0.9009723 0.8975213</code></pre>
+<pre><code>##       nrounds max_depth  eta subsample colsampe_bytree gamma min_child_weight
+##  [1,]     300        15 0.17       0.8             0.8     1                2
+##  [2,]     300        13 0.19       0.8             0.8     2                0
+##  [3,]     300        13 0.15       0.8             0.7     2                1
+##  [4,]     300        13 0.12       0.7             0.7     1                2
+##  [5,]     300        13 0.18       0.7             0.8     1                0
+##  [6,]     300        13 0.12       0.8             0.7     2                0
+##  [7,]     300        15 0.16       0.7             0.7     1                1
+##  [8,]     300        15 0.17       0.7             0.7     1                0
+##  [9,]     300        13 0.19       0.8             0.8     2                1
+## [10,]     300        15 0.19       0.8             0.8     2                0
+##       alpha lambda   val_AUC  Test_AUC
+##  [1,]     0      0 0.8908953 0.9134716
+##  [2,]     1      0 0.8990799 0.9007409
+##  [3,]     0      1 0.8925681 0.9216033
+##  [4,]     1      0 0.8904513 0.9192308
+##  [5,]     0      1 0.9023397 0.9010528
+##  [6,]     0      1 0.8967614 0.9096482
+##  [7,]     0      1 0.8928044 0.8928193
+##  [8,]     1      0 0.8969338 0.9085598
+##  [9,]     0      1 0.8957260 0.9231017
+## [10,]     0      1 0.9080930 0.8918919</code></pre>
 <p>This code is using bootstrapping and runs the best hyperparamters
 that we picked before. it tests the selected hyper parameters n times.
 since we are not tuning in it we can use all of the data in it.</p>
@@ -655,7 +658,7 @@ hyperparameters into ww.</p>
 <pre class="r"><code>bh_ind &lt;- which.max(colMeans(bs_results))
 ww &lt;- win[bh_ind, ]
 mean(bs_results[,bh_ind])</code></pre>
-<pre><code>## [1] 0.8864729</code></pre>
+<pre><code>## [1] 0.8865437</code></pre>
 <pre class="r"><code>cm &lt;- as.vector(colMeans(bs_results))
 win &lt;- cbind(win, av_ovr_n_runs=cm)</code></pre>
 <p>This is the final run. it uses bootrapping and runs n times.</p>
@@ -719,9 +722,9 @@ for (i in 1:n) {
 }
  
  mean(auc)</code></pre>
-<pre><code>## [1] 0.8861784</code></pre>
+<pre><code>## [1] 0.8856845</code></pre>
 <pre class="r"><code> sd(auc)</code></pre>
-<pre><code>## [1] 0.01739137</code></pre>
+<pre><code>## [1] 0.01739754</code></pre>
 <p>This presents the mean and 95% CI of the model runs Note: we are
 representing individual observations/model runs so we use SD not SE.</p>
 <pre class="r"><code># plot auc and mean
