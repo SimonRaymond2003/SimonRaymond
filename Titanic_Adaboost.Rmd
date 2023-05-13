@@ -31,10 +31,11 @@ train_titanic <- read_csv("train.csv")
 ```
 
 the columns i will use are y(Survived), Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
-```{r, warning=FALSE}
+```{r}
 library(dplyr)
 
-data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
+data <- train_titanic[selected_cols]
 data <- data %>% rename(y = Survived)
 ```
 
@@ -102,50 +103,66 @@ ADABOOST in gbm
 
 * Another option and thing i want to compare is JOUSboost
 
+This creates our Grid
 ```{r, warning=FALSE}
 
-ID <- 2:6
-S <- seq(0.005, 0.25, 0.005)
-NT <- seq(100, 2000, 100)
+interaction.depth <- 2:6
 
-grid <- as.matrix(expand.grid(S, NT, ID))
+
+grid <- as.matrix(expand.grid(
+  shrinkage <- seq(0.005, 0.25, 0.005), 
+  n.trees <- seq(100, 2000, 100), 
+  interaction.depth <- c(2:6)
+
+  )
+  )
 ```
 
+This code performs hyperparameter tuning for an Adaboost model in the GBM function/package. The number of iterations is controlled by the variable n. At each iteration, the code samples s hyperparameter combinations from a pre-defined grid. Then, the data is split into modeling and test data sets. the modeling data is boostrapped to make train and val data sets to to be used to select hyperparameters to be tested.
+
+For each hyperparameter combination, the average area under the curve (AUC) is calculated across the v validation runs. The hyperparameter combination with the highest average AUC is selected as the best hyperparameters for that iteration. The selected hyperparameters and their corresponding AUC are stored in the opt matrix.
+
+Finally, the code trains an Adaboostt model on the modeldata(both train and val) set using the best hyperparameters from each iteration. The AUC of that model is evaluated on a hold-out test set, and the results are stored in opt. 
+
+Note that the hyperparameters being tuned are shrinkage, n.trees, and interaction.depth. The nthread parameter controls the number of threads to use during training.
 ```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
 
-n <- 20
-s <- 250
-v <- 5
+
+n <- 50 # how many times we repeat the algorithm
+s <- 500 # how many hyperparamter sets are validated, length of randomgrid
+v <- 10 # how many times we bootstrapped a sample for each hyperparameter set
 
 
 
-opt <- matrix(0, nrow = n, ncol = 5, dimnames = list(NULL, c("h", "B", "d", "val_AUC", "Test_AUC")))
+opt <- matrix(0, nrow = n, ncol = 5, dimnames = list(NULL, c("shrinkage", " n.trees", "interaction.depth", "val_AUC", "Test_AUC")))
 
 auc_t <- c()
 
 for(j in 1:n){
-   
+
+# create the random grind
   ind <- sample(nrow(grid), s, replace = FALSE)
   rgrid <- grid[ind, ]
   
-
+# create model data and test data
   ind1 <- sample(nrow(data), nrow(data)*0.8)
   md <- data[ind1, ]
   test <- data[-ind1, ]
   
-    auc_runs <- c()
+    V_auc_mean <- c()
   for (i in 1:nrow(rgrid)){
     #cat("loops: ", j, i, "\r")
     
     auc_tuning <- c()
     for (p in 1:v){
-        # Initial Split
+        # bootstrap samples for train and val
   ind2 <- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train <- md[ind2, ]
   val <- md[-ind2, ]
   
+  # create a model off of train data
       model <- gbm(y ~ ., 
                    distribution = "adaboost", 
                    bag.fraction = 1, 
@@ -166,21 +183,22 @@ phat <- predict(model, n.trees = rgrid[i, 2], newdata = val, type = "response")
   auc_tuning[p] <- auc_ROCR@y.values[[1]]
       
     }
-   auc_runs[i] <- mean(auc_tuning)
+   V_auc_mean[i] <- mean(auc_tuning) # for each hyperparameter we are taking the mean of their runs
   
-     BI <- which.max(auc_runs) #best hyperparameter index
-  best_AUC <- auc_runs[BI]
+     BI <- which.max(V_auc_mean) #best hyperparameter index
+  best_AUC <- V_auc_mean[BI]
   best_params <- rgrid[BI, ]
   best_params <- as.matrix(best_params)
   best_params <- t(best_params)
   
-  # store the hyperparameters
+  # store the hyperparameters and there average AUC
   opt[j, 1] <- best_params[1, 1]
   opt[j, 2] <- best_params[1, 2]
   opt[j, 3] <- best_params[1, 3]
-  opt[j, 4] <- max(auc_runs)
+  opt[j, 4] <- max(V_auc_mean)
   }
   
+  # model for the final test witht he model data
    model <- gbm(y ~ ., 
                    distribution = "adaboost", 
                    bag.fraction = 1,
@@ -200,11 +218,12 @@ phat <- predict(model, n.trees = rgrid[i, 2], newdata = val, type = "response")
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc_t <- auc_ROCR@y.values[[1]]  
     
+ # store the test score
   opt[j, 5] <- auc_t
 }
 ```
 
-
+take the top x percentage of test scores in opt and put them and there hyper parameters into win
 ```{r, warning=FALSE}
 th <- quantile(opt[ ,5], probs = 0.50)
 ind_opt <- which(opt[ ,5] >= th)
@@ -213,7 +232,7 @@ win <- opt[ind_opt, ]
 win
 ```
 
-
+This uses bootstrapping for making data sets. we test each hyperparameter on the same sets/splits
 ```{r, warning=FALSE}
 
 library(gbm)
@@ -232,7 +251,7 @@ for (i in 1:n) {
     auc <- c()
   #cat("loops: ", i, j, "\r")
   
-  # Initial Split
+  # bootstrap the data
   ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
   md <- data[ind, ]
   test <- data[-ind, ]
@@ -257,19 +276,22 @@ for (i in 1:n) {
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc <- auc_ROCR@y.values[[1]]
   
+  # matrix with n rows and w collums. each collum is a hyper parameter
  bs_results[i, j] <- auc 
 }
 }
 ```
 
+this takes the colmeans and finds the best hyperparameter set and assigns it to bh. we also cbind the other results onto win just incase we want to look at the other options.
 ```{r, warning=FALSE}
 bh_ind <- which.max(colMeans(bs_results))
-ww <- win[bh_ind, ]
+bh <- win[bh_ind, ]
 mean(bs_results[,bh_ind])
 cm <- as.vector(colMeans(bs_results))
 win <- cbind(win, av_ovr_n_runs=cm)
 ```
 
+This just does a final test on our selected winning Hyperparameters
 ```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
@@ -278,17 +300,17 @@ n <- 1000
 
  auc <- c()
 for(i in 1:n){
-# Initial Split
+ # bootstap
   ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
   md <- data[ind, ]
   test <- data[-ind, ]
-
+# build the model on md
   model <- gbm(y ~ ., 
                    distribution = "adaboost", 
                    bag.fraction = 1,
-                   shrinkage = ww[1], 
-                   n.trees = ww[2], 
-                   interaction.depth = ww[3],
+                   shrinkage = bh[1], 
+                   n.trees = bh[2], 
+                   interaction.depth = bh[3],
                    n.cores = 3,
                    verbose = FALSE,
                    data = md
@@ -296,7 +318,7 @@ for(i in 1:n){
 
   
   # Predicting on the test set
-  phat <- predict(model, test, n.trees = ww[2], type = "response")
+  phat <- predict(model, test, n.trees = bh[2], type = "response")
   
   # Calculating the AUC
   pred_rocr <- prediction(phat, test$y)
@@ -310,7 +332,7 @@ sd(auc)
 
 ```{r, warning=FALSE}
 
-# plot auc and mean
+# plot auc and 95% CI
 plot(auc, col="red")
 abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
 abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)

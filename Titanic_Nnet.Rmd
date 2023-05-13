@@ -18,10 +18,8 @@ navbar:
       name: SimonRaymond 
 ---
 
-this will be my titanic nnet page
-
-
 # Data Prep
+
 Download the Data
 ```{r}
 library(readr)
@@ -32,7 +30,8 @@ The columns i will use are y, Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as t
 ```{r}
 library(dplyr)
 
-data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
+data <- train_titanic[selected_cols]
 data <- data %>% rename(y = Survived)
 ```
 
@@ -96,6 +95,7 @@ str(data)
 
 # nnet
 
+This sets a wide grid
 ```{r}
 size <- c(2:6)
 decay <- c(seq(0.01, 0.25, 0.01))
@@ -107,14 +107,14 @@ grid <- expand.grid(size, decay, maxit)
 library(ROCR)
 library(nnet)
 
-n <- 20
-v <- 5
-s <- 250
+n <- 50 # number of times we run the algorithm
+s <- 500 # how many samples we take for the random grid/ to be validated
+v <- 10 # how many times we run each hyper parameter then take the mean of. for validation
 
 AUC <- c()
 
 
-
+# store out best values via validation scores
 opt <- matrix(0, nrow = n, ncol = 5)
 colnames(opt) <- c("size", "decay", "maxit", "AUC_val", "AUC_TEST")
 
@@ -122,75 +122,75 @@ colnames(opt) <- c("size", "decay", "maxit", "AUC_val", "AUC_TEST")
 
 for (j in 1:n){
   
-  
+  # put aside data for final test. creat md and test
 ind1 <- sample(nrow(data), nrow(data)*0.8, replace = FALSE)
-
 md <- data[ind1, ]
 test <- data[-ind1, ]
 
-
+# make our random grid
 ind <- sample(nrow(grid), s , replace = FALSE)
 rgrid <- grid[ind, ]
 
 
 auc_runs <- c() 
   
-  
-  
 for (i in 1:nrow(rgrid)){
   #cat("loops: ", j, i, "\r")
   
    auc_tuning <- c()
     for (p in 1:v){
-  
+  # bootstrap from md to make a train and val set
  idx <- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train <- md[idx,]
   val <- md[-idx, ]
-
+# model on the train data
   model <- nnet(y ~ ., 
                 data = train, 
                 trace = FALSE, 
+                act.fct = "logistic",
                 size = rgrid[i, 1], 
                 decay = rgrid[i, 2], 
                 maxit = rgrid[i, 3]
                 )
-  
+  # predict on the val data
   phat <- predict(model, val)
   
+  # find the auc
   pred_rocr <- prediction(phat, val$y)
-auc_ROCR <- performance(pred_rocr, measure = "auc")
-auc_tuning[p] <- auc_ROCR@y.values[[1]]
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc_tuning[p] <- auc_ROCR@y.values[[1]]
 }
-auc_runs[i] <- mean(auc_tuning)
+auc_runs[i] <- mean(auc_tuning) #take the mean of v runs for that one specific hyper parameter
 }
+# index the best hyper parameters 
 BI <- which.max(auc_runs)
 best_AUC <- auc_runs[BI]
 best_params <- rgrid[BI, ]
   
+# store the best hyper parames based on the mean aucs
   opt[j, 1] <- best_params[1, 1]
   opt[j, 2] <- best_params[1, 2]
   opt[j, 3] <- best_params[1, 3]
   opt[j, 4] <- best_AUC
  
-
-
-
-  
+# model with the md data
    model <- nnet(y ~ ., 
                 data = md, 
-                trace = FALSE, 
+                trace = FALSE,
+                act.fct = "logistic",
                 size = opt[j, 1], 
                 decay = opt[j, 2], 
                 maxit = opt[j, 3]
                 )
+  # predict the set aside test set
     phat_t <- predict(model, test)
-  
+  # get the test auc
   pred_rocr <- prediction(phat_t, test$y)
 auc_ROCR <- performance(pred_rocr, measure = "auc")
 auc_test <- auc_ROCR@y.values[[1]]
   
 
-  
+  # store the test auc
 opt[j, 5] <- auc_test
 
 
@@ -201,7 +201,7 @@ opt[j, 5] <- auc_test
 
 ```
 
-index the best
+index the best x percent of test aucs and there hyperparameters. we will store them in win
 ```{r}
 th <- quantile(opt[ ,5], probs = 0.50)
 ind_opt <- which(opt[ ,5] >= th)
@@ -210,7 +210,7 @@ win <- opt[ind_opt, ]
 win
 ```
 
-
+This code is using bootstrapping and runs the best hyperparamters that we picked before. it tests the selected hyper parameters n times. since we are not tuning in it we can use all of the data in it.
 ```{r}
 library(nnet)
 library(ROCR)
@@ -233,9 +233,11 @@ for (i in 1:n) {
   md <- data[ind, ]
   test <- data[-ind, ]
 
+  # build the model on model data
  model <- nnet(y ~ ., 
                 data = md, 
                 trace = FALSE, 
+                act.fct = "logistic",
                 size = win[j, 1], 
                 decay = win[j, 2], 
                 maxit = win[j, 3]
@@ -249,20 +251,23 @@ for (i in 1:n) {
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc <- auc_ROCR@y.values[[1]]
   
+  # matrix with n rows and w collums. each collum is a hyper parameter
  bs_results[i, j] <- auc 
 }
 }
 ```
 
+This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the correlating hyperparameters into bh.
 ```{r}
 bh_ind <- which.max(colMeans(bs_results))
-ww <- win[bh_ind, ]
+bh <- win[bh_ind, ]
 mean(bs_results[,bh_ind])
 cm <- as.vector(colMeans(bs_results))
 win <- cbind(win, av_ovr_n_runs=cm)
-ww
+bh
 ```
 
+This is the final run. it uses bootstrapping and runs n times. This is mostly to do a final proof and present the auc 
 ```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
@@ -277,17 +282,18 @@ n <- 1000
 for(i in 1:n){
     #cat("loops: ", i, "\r")
   
-# Initial Split
+# bootstrapping 
   ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
   md <- data[ind, ]
   test <- data[-ind, ]
-
+#
    model <- nnet(y ~ ., 
                 data = md, 
                 trace = FALSE, 
-                size = ww[1], 
-                decay = ww[2], 
-                maxit = ww[3]
+                act.fct = "logistic",
+                size = bh[1], 
+                decay = bh[2], 
+                maxit = bh[3]
                 )
   
   # Predicting on the test set
@@ -305,7 +311,7 @@ sd(auc)
 
 ```{r, warning=FALSE}
 
-# plot auc and mean
+# plot auc and 95% CI
 plot(auc, col="red")
 abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
 abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)

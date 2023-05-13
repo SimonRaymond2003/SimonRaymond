@@ -285,7 +285,7 @@ $(document).ready(function () {
 
 train_titanic &lt;- read_csv(&quot;train.csv&quot;)</code></pre>
 <pre><code>## Rows: 891 Columns: 12
-## ── Column specification ─────────────────────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (5): Name, Sex, Ticket, Cabin, Embarked
 ## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
@@ -297,7 +297,8 @@ Emarked as they are the easiest to work with. other possibilities
 include using the titles for names</p>
 <pre class="r"><code>library(dplyr)
 
-data &lt;- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+selected_cols &lt;- c(&quot;Survived&quot;, &quot;Pclass&quot;, &quot;Sex&quot;, &quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;, &quot;Embarked&quot;)
+data &lt;- train_titanic[selected_cols]
 data &lt;- data %&gt;% rename(y = Survived)</code></pre>
 <p>convert the characters to factors. convert our y variable to numeric
 for XGBoosting</p>
@@ -353,41 +354,35 @@ colSums(is.na(data))</code></pre>
 </div>
 <div id="xgboosting" class="section level1">
 <h1>xgBoosting</h1>
-<p>This code performs hyperparameter tuning for an XGBoost model using a
-bootstrapping approach. The number of iterations is controlled by the
-variable n. At each iteration, the code samples s hyperparameter
-combinations from a pre-defined grid. Then, the data is split into
-training and validation sets, and the selected hyperparameters are
-evaluated v times on the validation set.</p>
+<p>This code performs hyperparameter tuning for an XGBoost model. The
+number of iterations is controlled by the variable n. At each iteration,
+the code samples s hyperparameter combinations from a pre-defined grid.
+Then, the data is split into modeling and test data sets. the modeling
+data is boostrapped to make train and val data sets to to be used to
+select hyperparameters to be tested.</p>
 <p>For each hyperparameter combination, the average area under the curve
 (AUC) is calculated across the v validation runs. The hyperparameter
 combination with the highest average AUC is selected as the best
 hyperparameters for that iteration. The selected hyperparameters and
 their corresponding AUC are stored in the opt matrix.</p>
-<p>Finally, the code trains an XGBoost model on the entire model data
-set using the best hyperparameters from each iteration. The AUC of the
-trained model is evaluated on a hold-out test set, and the results are
-stored in opt. A weakness i have found is that the final test on be
-validated hyperparameters is only preformed once since the data is kept
-seperate.</p>
+<p>Finally, the code trains an XGBoost model on the modeldata(both train
+and val) set using the best hyperparameters from each iteration. The AUC
+of that model is evaluated on a hold-out test set, and the results are
+stored in opt.</p>
 <p>Note that the hyperparameters being tuned are nrounds, max_depth,
 eta, subsample, colsample_bytree, gamma, min_child_weight, alpha, and
 lambda. The nthread parameter controls the number of threads to use
 during training.</p>
-<p>Overall, this code can be useful for finding the best set of
-hyperparameters for an XGBoost model. The bootstrapping approach can
-help mitigate overfitting, and the use of a pre-defined grid can help
-avoid an exhaustive search of the hyperparameter space.</p>
 <p>This grid is very limited because of processing power. it is
-relativly tuned.</p>
+relatively tuned.</p>
 <pre class="r"><code>grid &lt;- expand.grid(
-  nrounds = seq(300, 300, by = 100),
+  nrounds = seq(300, 300, by = 0),
   max_depth = seq(13, 16, by = 2),
   eta = seq(0.1, 0.2, by = 0.01),
   subsample = seq(0.7, 0.8, by = 0.1),
   colsampe_bytree = seq(0.7, 0.8, by = 0.1),
   gamma = seq(1, 2, by = 1),
-  min_child_weight = seq(0, 2, by = 1),
+  min_child_weight = seq(0, 5, by = 2),
   alpha = seq(0, 1, by = 1),
   lambda = seq(0, 1, by = 1)
 )</code></pre>
@@ -401,34 +396,34 @@ relativly tuned.</p>
 
 start_time &lt;- Sys.time()
 
-n &lt;- 20
-s &lt;- 250
-v &lt;- 5
-esr &lt;- 10
+n &lt;- 50 # how many times we repeat the algorithm
+s &lt;- 500 # how many hyperparamter sets are validated, length of randomgrid
+v &lt;- 10 # how many times we bootstrapped a sample for each hyperparameter set
+
+
+esr &lt;- 5
 opt &lt;- matrix(0, nrow = n, ncol = 11, dimnames = list(NULL, c(&quot;nrounds&quot;, &quot;max_depth&quot;, &quot;eta&quot;, &quot;subsample&quot;, &quot;colsampe_bytree&quot;, &quot;gamma&quot;, &quot;min_child_weight&quot;, &quot;alpha&quot;, &quot;lambda&quot;, &quot;val_AUC&quot;, &quot;Test_AUC&quot;)))
 
 auc_t &lt;- c()
 for(j in 1:n){
   
-    
-
-  
+  # this makes the random grid by sampling from grid s times
   ind &lt;- sample(nrow(grid), s, replace = FALSE)
   rgrid &lt;- grid[ind, ]
   
-
+  #  this creates model data and test data
   ind1 &lt;- sample(nrow(data), nrow(data)*0.8)
   md &lt;- data[ind1, ]
   test &lt;- data[-ind1, ]
   
-  auc_runs &lt;- c()
+  v_auc_mean &lt;- c()
   for (i in 1:nrow(rgrid)) {
     auc_tuning &lt;- c()
 for (p in 1:v){
   
   #cat(&quot;loops: &quot;, j, i, p, &quot;\r&quot;)
   
-  # Initial Split
+  # bootstrap for samples
   ind2 &lt;- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train &lt;- md[ind2, ]
   val &lt;- md[-ind2, ]
@@ -444,7 +439,7 @@ for (p in 1:v){
   xgb_train &lt;- xgb.DMatrix(data = train_x, label = train_y) 
   xgb_val &lt;- xgb.DMatrix(data = val_x, label = val_y)
 
-  # Training and evaluating the model
+  # Training the model on train data
   xgb_model &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
                          data = xgb_train, 
                          nrounds = rgrid[i, 1],
@@ -464,7 +459,7 @@ for (p in 1:v){
   )
 
   
-# Predicting on the val set
+# Predicting on the val data
 phat &lt;- predict(xgb_model, xgb_val, type = &quot;prob&quot;)
 
   # Calculating the AUC
@@ -472,14 +467,17 @@ phat &lt;- predict(xgb_model, xgb_val, type = &quot;prob&quot;)
   auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
   auc_tuning[p] &lt;- auc_ROCR@y.values[[1]]
 }
-auc_runs[i] &lt;- mean(auc_tuning)
+    
+# get the mean of the hyperparamters(set) that was just run
+v_auc_mean[i] &lt;- mean(auc_tuning)
 
 
 
- BI &lt;- which.max(auc_runs) #best hyperparameter index
-  best_AUC &lt;- auc_runs[BI]
+ BI &lt;- which.max(v_auc_mean) #best hyperparameter index
+  best_AUC &lt;- v_auc_mean[BI]
   best_params &lt;- rgrid[BI, ]
   
+  # store the best hyperparameters and there val results
   opt[j, 1] &lt;- best_params[1, 1]
   opt[j, 2] &lt;- best_params[1, 2]
   opt[j, 3] &lt;- best_params[1, 3]
@@ -489,24 +487,24 @@ auc_runs[i] &lt;- mean(auc_tuning)
   opt[j, 7] &lt;- best_params[1, 7]
   opt[j, 8] &lt;- best_params[1, 8]
   opt[j, 9] &lt;- best_params[1, 9]
-  opt[j, 10] &lt;- max(auc_runs)
+  opt[j, 10] &lt;- max(v_auc_mean)
 }
 
-  # One-hot coding using R&#39;s `model.matrix`
+  # One-hot coding using R&#39;s `model.matrix` for the final test
   md_x &lt;- model.matrix(~.+0, data = md[, -which(names(md) == &quot;y&quot;)]) 
   md_y &lt;- md$y
  
   test_x &lt;- model.matrix(~.+0, data = test[, -which(names(test) == &quot;y&quot;)])
   test_y &lt;- test$y
   
-  # Preparing efficient matrix
+  # Preparing efficient matrix for the final test
   xgb_md &lt;- xgb.DMatrix(data = md_x, label = md_y) 
   xgb_test &lt;- xgb.DMatrix(data = test_x, label = test_y)
   
   
   
   
-  # Training and evaluating the model
+  # Train the model with model data
   xgb_mt &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
                          data = xgb_md, 
                          nrounds = opt[j ,1],
@@ -535,7 +533,7 @@ phat &lt;- predict(xgb_mt, xgb_test, type = &quot;prob&quot;)
   auc_t &lt;- auc_ROCR@y.values[[1]]
 
 
-
+# store the test auc
 opt[j, 11] &lt;- auc_t
   
 }
@@ -547,45 +545,73 @@ end_time &lt;- Sys.time()
 elapsed_time &lt;- end_time - start_time
 
 elapsed_time</code></pre>
-<pre><code>## Time difference of 51.67212 mins</code></pre>
+<pre><code>## Time difference of 4.536487 hours</code></pre>
 <p>This code will index and assign the best hyper parameters from opt
 into a matrix called win.</p>
 <p>NOTE: A weakness is that the test run is one split or rather one n
 run. this means it is weak to a high standard deviation or variability
-in the models predicition. The issue is that if we want to be able to
-use multiple bootstrapped samples to get a average test run we will
-either risk overfitting the hyperparameters or will have to split the
-data in a awkward way.</p>
-<p>Im want to do more reasearch on if there is a way boostrap samples
-for a average and not overfit the hyperparameters/model</p>
-<p>This takes the top 50 percent of hyperparameters based on there</p>
+in the models predicition. This issue starts to dissapear as we can run
+the model more times (n) as we then can look for similar hyper parameter
+sets and select based on there mean test scores.</p>
+<p>This takes the top 50 percent of hyperparameters based on there test
+scores and puts them into a matrix named win</p>
 <pre class="r"><code>th &lt;- quantile(opt[,11], probs = 0.50)
 ind_opt &lt;- which(opt[,11] &gt;= th)
 
 win &lt;- opt[ind_opt, ]
 win</code></pre>
 <pre><code>##       nrounds max_depth  eta subsample colsampe_bytree gamma min_child_weight
-##  [1,]     300        15 0.17       0.8             0.8     1                2
-##  [2,]     300        13 0.19       0.8             0.8     2                0
-##  [3,]     300        13 0.15       0.8             0.7     2                1
-##  [4,]     300        13 0.12       0.7             0.7     1                2
-##  [5,]     300        13 0.18       0.7             0.8     1                0
-##  [6,]     300        13 0.12       0.8             0.7     2                0
-##  [7,]     300        15 0.16       0.7             0.7     1                1
-##  [8,]     300        15 0.17       0.7             0.7     1                0
-##  [9,]     300        13 0.19       0.8             0.8     2                1
-## [10,]     300        15 0.19       0.8             0.8     2                0
+##  [1,]     300        13 0.12       0.7             0.7     2                0
+##  [2,]     300        13 0.19       0.8             0.8     1                0
+##  [3,]     300        13 0.13       0.8             0.8     1                2
+##  [4,]     300        15 0.12       0.7             0.7     1                0
+##  [5,]     300        15 0.11       0.7             0.8     2                0
+##  [6,]     300        13 0.13       0.8             0.8     2                0
+##  [7,]     300        13 0.17       0.8             0.7     2                0
+##  [8,]     300        13 0.20       0.7             0.8     1                0
+##  [9,]     300        15 0.18       0.8             0.8     1                2
+## [10,]     300        13 0.18       0.7             0.8     1                2
+## [11,]     300        15 0.13       0.8             0.7     1                0
+## [12,]     300        13 0.16       0.7             0.8     2                0
+## [13,]     300        13 0.14       0.7             0.8     2                0
+## [14,]     300        13 0.13       0.7             0.8     1                0
+## [15,]     300        13 0.15       0.8             0.8     1                0
+## [16,]     300        13 0.12       0.7             0.8     2                2
+## [17,]     300        15 0.11       0.8             0.7     2                0
+## [18,]     300        15 0.18       0.8             0.7     2                0
+## [19,]     300        15 0.13       0.8             0.7     2                0
+## [20,]     300        15 0.16       0.8             0.8     2                2
+## [21,]     300        15 0.17       0.8             0.8     1                0
+## [22,]     300        13 0.18       0.8             0.8     1                0
+## [23,]     300        15 0.15       0.7             0.8     1                2
+## [24,]     300        13 0.13       0.8             0.8     2                0
+## [25,]     300        13 0.14       0.8             0.7     1                0
 ##       alpha lambda   val_AUC  Test_AUC
-##  [1,]     0      0 0.8908953 0.9134716
-##  [2,]     1      0 0.8990799 0.9007409
-##  [3,]     0      1 0.8925681 0.9216033
-##  [4,]     1      0 0.8904513 0.9192308
-##  [5,]     0      1 0.9023397 0.9010528
-##  [6,]     0      1 0.8967614 0.9096482
-##  [7,]     0      1 0.8928044 0.8928193
-##  [8,]     1      0 0.8969338 0.9085598
-##  [9,]     0      1 0.8957260 0.9231017
-## [10,]     0      1 0.9080930 0.8918919</code></pre>
+##  [1,]     0      1 0.8893181 0.9039840
+##  [2,]     0      1 0.8797467 0.9325649
+##  [3,]     0      1 0.8852423 0.9233815
+##  [4,]     0      1 0.8886325 0.9101030
+##  [5,]     0      1 0.8827529 0.9322943
+##  [6,]     0      1 0.8959550 0.9107962
+##  [7,]     1      0 0.8889335 0.8998588
+##  [8,]     0      1 0.8907071 0.9155742
+##  [9,]     0      0 0.8884785 0.9126359
+## [10,]     0      1 0.8872552 0.9164482
+## [11,]     1      0 0.8787819 0.9102772
+## [12,]     0      1 0.8867345 0.9068627
+## [13,]     0      0 0.8906389 0.9028560
+## [14,]     0      1 0.8920691 0.9019162
+## [15,]     1      0 0.8902942 0.9047348
+## [16,]     0      0 0.8837673 0.9226656
+## [17,]     0      1 0.8911784 0.9096491
+## [18,]     0      1 0.8882821 0.9025337
+## [19,]     0      1 0.8924070 0.9032938
+## [20,]     0      0 0.8802460 0.9121078
+## [21,]     0      1 0.8926127 0.9106410
+## [22,]     0      1 0.8940189 0.9045095
+## [23,]     0      1 0.8864139 0.9244171
+## [24,]     1      0 0.8932269 0.9029082
+## [25,]     0      1 0.8915600 0.9125575</code></pre>
 <p>This code is using bootstrapping and runs the best hyperparamters
 that we picked before. it tests the selected hyper parameters n times.
 since we are not tuning in it we can use all of the data in it.</p>
@@ -594,7 +620,8 @@ library(ROCR)
 
 n &lt;- 400
 w &lt;- nrow(win)
-esr &lt;- 10
+esr &lt;- 10 # early stopping rounds
+
 #collums are hyper param set
 bs_results &lt;- matrix(0, nrow = n, ncol = w)
 
@@ -648,28 +675,28 @@ for (i in 1:n) {
   auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
   auc &lt;- auc_ROCR@y.values[[1]]
   
+  # matrix with n rows and w collums. each collum is a hyper parameter
  bs_results[i, j] &lt;- auc 
 }
 }</code></pre>
 <p>This code takes the colmeans of the matrix that gave our results.
 then we bind these results onto the win matrix for presentation. it also
-takes the index of the best run from before and saves the corelating
-hyperparameters into ww.</p>
+takes the index of the best run from before and saves the correlating
+hyperparameters into bh.</p>
 <pre class="r"><code>bh_ind &lt;- which.max(colMeans(bs_results))
-ww &lt;- win[bh_ind, ]
+bh &lt;- win[bh_ind, ]
 mean(bs_results[,bh_ind])</code></pre>
-<pre><code>## [1] 0.8865437</code></pre>
+<pre><code>## [1] 0.8873848</code></pre>
 <pre class="r"><code>cm &lt;- as.vector(colMeans(bs_results))
 win &lt;- cbind(win, av_ovr_n_runs=cm)</code></pre>
-<p>This is the final run. it uses bootrapping and runs n times.</p>
+<p>This is the final run. it uses bootstrapping and runs n times. This
+is mostly to do a final proof and present the auc</p>
 <pre class="r"><code>library(xgboost)
 library(ROCR)
 
 n &lt;- 1000
 
-
 esr &lt;- 10
-
 
  auc &lt;- c()
 for (i in 1:n) {
@@ -692,18 +719,18 @@ for (i in 1:n) {
   xgb_md &lt;- xgb.DMatrix(data = md_x, label = md_y) 
   xgb_test &lt;- xgb.DMatrix(data = test_x, label = test_y)
   
-  # Modeling
+  # Modeling with md
   xgb_m &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
                                data = xgb_md, 
-                               nrounds = ww[1],
-                               max_depth = ww[2],
-                               eta = ww[3], 
-                               subsample = ww[4],
-                               colsample_bytree = ww[5],
-                               gamma = ww[6],
-                               min_child_weight = ww[7],
-                               alpha = ww[8],
-                               lambda = ww[9],
+                               nrounds = bh[1],
+                               max_depth = bh[2],
+                               eta = bh[3], 
+                               subsample = bh[4],
+                               colsample_bytree = bh[5],
+                               gamma = bh[6],
+                               min_child_weight = bh[7],
+                               alpha = bh[8],
+                               lambda = bh[9],
                                early_stopping_rounds = esr,
                                eval_metric = &quot;auc&quot;,
                                watchlist = list(train = xgb_md, val = xgb_test),
@@ -722,19 +749,20 @@ for (i in 1:n) {
 }
  
  mean(auc)</code></pre>
-<pre><code>## [1] 0.8856845</code></pre>
+<pre><code>## [1] 0.88462</code></pre>
 <pre class="r"><code> sd(auc)</code></pre>
-<pre><code>## [1] 0.01739754</code></pre>
+<pre><code>## [1] 0.01741747</code></pre>
 <p>This presents the mean and 95% CI of the model runs Note: we are
 representing individual observations/model runs so we use SD not SE.</p>
-<pre class="r"><code># plot auc and mean
+<pre class="r"><code># plot auc and 95% CI of the runs
 plot(auc, col=&quot;red&quot;)
 abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
 abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)
 abline(a = mean(auc)+1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)</code></pre>
 <p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>If we are finding a threshold he then need to pay attention to the
-watchlist outputs and tune nrounds accordingly</p>
+watchlist outputs and tune nrounds accordingly. also note i am use early
+stopping rounds in my loops.</p>
 </div>
 
 

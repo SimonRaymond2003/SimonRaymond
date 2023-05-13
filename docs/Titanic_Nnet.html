@@ -277,14 +277,13 @@ $(document).ready(function () {
 </div>
 
 
-<p>this will be my titanic nnet page</p>
 <div id="data-prep" class="section level1">
 <h1>Data Prep</h1>
 <p>Download the Data</p>
 <pre class="r"><code>library(readr)
 train_titanic &lt;- read_csv(&quot;train.csv&quot;)</code></pre>
 <pre><code>## Rows: 891 Columns: 12
-## ── Column specification ─────────────────────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (5): Name, Sex, Ticket, Cabin, Embarked
 ## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
@@ -296,7 +295,8 @@ Emarked as they are the easiest to work with. other possibilities
 include using the tiltes for names</p>
 <pre class="r"><code>library(dplyr)
 
-data &lt;- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+selected_cols &lt;- c(&quot;Survived&quot;, &quot;Pclass&quot;, &quot;Sex&quot;, &quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;, &quot;Embarked&quot;)
+data &lt;- train_titanic[selected_cols]
 data &lt;- data %&gt;% rename(y = Survived)</code></pre>
 <p>convert the characters to factors. convert our y variable to numeric
 for XGBoosting</p>
@@ -351,6 +351,7 @@ colSums(is.na(data))</code></pre>
 </div>
 <div id="nnet" class="section level1">
 <h1>nnet</h1>
+<p>This sets a wide grid</p>
 <pre class="r"><code>size &lt;- c(2:6)
 decay &lt;- c(seq(0.01, 0.25, 0.01))
 maxit &lt;- c(seq(100, 1500, 50))
@@ -358,14 +359,14 @@ grid &lt;- expand.grid(size, decay, maxit)</code></pre>
 <pre class="r"><code>library(ROCR)
 library(nnet)
 
-n &lt;- 20
-v &lt;- 5
-s &lt;- 250
+n &lt;- 50 # number of times we run the algorithm
+s &lt;- 500 # how many samples we take for the random grid/ to be validated
+v &lt;- 10 # how many times we run each hyper parameter then take the mean of. for validation
 
 AUC &lt;- c()
 
 
-
+# store out best values via validation scores
 opt &lt;- matrix(0, nrow = n, ncol = 5)
 colnames(opt) &lt;- c(&quot;size&quot;, &quot;decay&quot;, &quot;maxit&quot;, &quot;AUC_val&quot;, &quot;AUC_TEST&quot;)
 
@@ -373,98 +374,117 @@ colnames(opt) &lt;- c(&quot;size&quot;, &quot;decay&quot;, &quot;maxit&quot;, &q
 
 for (j in 1:n){
   
-  
+  # put aside data for final test. creat md and test
 ind1 &lt;- sample(nrow(data), nrow(data)*0.8, replace = FALSE)
-
 md &lt;- data[ind1, ]
 test &lt;- data[-ind1, ]
 
-
+# make our random grid
 ind &lt;- sample(nrow(grid), s , replace = FALSE)
 rgrid &lt;- grid[ind, ]
 
 
 auc_runs &lt;- c() 
   
-  
-  
 for (i in 1:nrow(rgrid)){
   #cat(&quot;loops: &quot;, j, i, &quot;\r&quot;)
   
    auc_tuning &lt;- c()
     for (p in 1:v){
-  
+  # bootstrap from md to make a train and val set
  idx &lt;- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train &lt;- md[idx,]
   val &lt;- md[-idx, ]
-
+# model on the train data
   model &lt;- nnet(y ~ ., 
                 data = train, 
                 trace = FALSE, 
+                act.fct = &quot;logistic&quot;,
                 size = rgrid[i, 1], 
                 decay = rgrid[i, 2], 
                 maxit = rgrid[i, 3]
                 )
-  
+  # predict on the val data
   phat &lt;- predict(model, val)
   
+  # find the auc
   pred_rocr &lt;- prediction(phat, val$y)
-auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
-auc_tuning[p] &lt;- auc_ROCR@y.values[[1]]
+  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
+  auc_tuning[p] &lt;- auc_ROCR@y.values[[1]]
 }
-auc_runs[i] &lt;- mean(auc_tuning)
+auc_runs[i] &lt;- mean(auc_tuning) #take the mean of v runs for that one specific hyper parameter
 }
+# index the best hyper parameters 
 BI &lt;- which.max(auc_runs)
 best_AUC &lt;- auc_runs[BI]
 best_params &lt;- rgrid[BI, ]
   
+# store the best hyper parames based on the mean aucs
   opt[j, 1] &lt;- best_params[1, 1]
   opt[j, 2] &lt;- best_params[1, 2]
   opt[j, 3] &lt;- best_params[1, 3]
   opt[j, 4] &lt;- best_AUC
  
-
-
-
-  
+# model with the md data
    model &lt;- nnet(y ~ ., 
                 data = md, 
-                trace = FALSE, 
+                trace = FALSE,
+                act.fct = &quot;logistic&quot;,
                 size = opt[j, 1], 
                 decay = opt[j, 2], 
                 maxit = opt[j, 3]
                 )
+  # predict the set aside test set
     phat_t &lt;- predict(model, test)
-  
+  # get the test auc
   pred_rocr &lt;- prediction(phat_t, test$y)
 auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
 auc_test &lt;- auc_ROCR@y.values[[1]]
   
 
-  
+  # store the test auc
 opt[j, 5] &lt;- auc_test
 
 
 
   
 }</code></pre>
-<p>index the best</p>
+<p>index the best x percent of test aucs and there hyperparameters. we
+will store them in win</p>
 <pre class="r"><code>th &lt;- quantile(opt[ ,5], probs = 0.50)
 ind_opt &lt;- which(opt[ ,5] &gt;= th)
 
 win &lt;- opt[ind_opt, ]
 win</code></pre>
 <pre><code>##       size decay maxit   AUC_val  AUC_TEST
-##  [1,]    5  0.10   850 0.8762260 0.8988539
-##  [2,]    5  0.13   600 0.8843046 0.8761062
-##  [3,]    4  0.03   900 0.8852963 0.8782157
-##  [4,]    6  0.17  1350 0.8830705 0.8674144
-##  [5,]    6  0.11   300 0.8792296 0.8852014
-##  [6,]    3  0.06   900 0.8824768 0.8836778
-##  [7,]    4  0.16   550 0.8940490 0.8773185
-##  [8,]    4  0.05  1500 0.8828757 0.9019844
-##  [9,]    6  0.10  1200 0.8930881 0.8676039
-## [10,]    6  0.16  1000 0.8860353 0.8888447</code></pre>
+##  [1,]    6  0.22   950 0.8779571 0.8738268
+##  [2,]    6  0.07  1100 0.8806940 0.8741388
+##  [3,]    3  0.04   550 0.8711150 0.8879892
+##  [4,]    3  0.17   200 0.8719684 0.8929487
+##  [5,]    4  0.09  1100 0.8755925 0.8923718
+##  [6,]    4  0.11   550 0.8775980 0.8744972
+##  [7,]    5  0.17   150 0.8842549 0.8762389
+##  [8,]    5  0.08  1350 0.8714630 0.9010334
+##  [9,]    5  0.24  1250 0.8817058 0.8686430
+## [10,]    4  0.17  1100 0.8820751 0.8893443
+## [11,]    6  0.15   300 0.8805495 0.8786775
+## [12,]    6  0.10  1100 0.8654288 0.9204575
+## [13,]    5  0.13  1200 0.8745061 0.8754358
+## [14,]    5  0.19   250 0.8791122 0.8688073
+## [15,]    5  0.14  1350 0.8718739 0.8814229
+## [16,]    6  0.25   150 0.8712955 0.9055258
+## [17,]    5  0.11   500 0.8763618 0.8710859
+## [18,]    6  0.17  1500 0.8798742 0.8810892
+## [19,]    4  0.09   650 0.8789933 0.8752306
+## [20,]    6  0.14   250 0.8779028 0.8716733
+## [21,]    4  0.15  1000 0.8760848 0.8780647
+## [22,]    3  0.02   200 0.8849975 0.8686441
+## [23,]    6  0.23   700 0.8706899 0.9012519
+## [24,]    4  0.08   100 0.8843795 0.8850281
+## [25,]    6  0.15   850 0.8740920 0.8746088</code></pre>
+<p>This code is using bootstrapping and runs the best hyperparamters
+that we picked before. it tests the selected hyper parameters n times.
+since we are not tuning in it we can use all of the data in it.</p>
 <pre class="r"><code>library(nnet)
 library(ROCR)
 
@@ -486,9 +506,11 @@ for (i in 1:n) {
   md &lt;- data[ind, ]
   test &lt;- data[-ind, ]
 
+  # build the model on model data
  model &lt;- nnet(y ~ ., 
                 data = md, 
                 trace = FALSE, 
+                act.fct = &quot;logistic&quot;,
                 size = win[j, 1], 
                 decay = win[j, 2], 
                 maxit = win[j, 3]
@@ -502,18 +524,25 @@ for (i in 1:n) {
   auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
   auc &lt;- auc_ROCR@y.values[[1]]
   
+  # matrix with n rows and w collums. each collum is a hyper parameter
  bs_results[i, j] &lt;- auc 
 }
 }</code></pre>
+<p>This code takes the colmeans of the matrix that gave our results.
+then we bind these results onto the win matrix for presentation. it also
+takes the index of the best run from before and saves the correlating
+hyperparameters into bh.</p>
 <pre class="r"><code>bh_ind &lt;- which.max(colMeans(bs_results))
-ww &lt;- win[bh_ind, ]
+bh &lt;- win[bh_ind, ]
 mean(bs_results[,bh_ind])</code></pre>
-<pre><code>## [1] 0.8686404</code></pre>
+<pre><code>## [1] 0.8678928</code></pre>
 <pre class="r"><code>cm &lt;- as.vector(colMeans(bs_results))
 win &lt;- cbind(win, av_ovr_n_runs=cm)
-ww</code></pre>
+bh</code></pre>
 <pre><code>##         size        decay        maxit      AUC_val     AUC_TEST 
-##    6.0000000    0.1700000 1350.0000000    0.8830705    0.8674144</code></pre>
+##    6.0000000    0.1000000 1100.0000000    0.8654288    0.9204575</code></pre>
+<p>This is the final run. it uses bootstrapping and runs n times. This
+is mostly to do a final proof and present the auc</p>
 <pre class="r"><code>library(gbm)
 library(ROCR)
 
@@ -527,17 +556,18 @@ n &lt;- 1000
 for(i in 1:n){
     #cat(&quot;loops: &quot;, i, &quot;\r&quot;)
   
-# Initial Split
+# bootstrapping 
   ind &lt;- unique(sample(nrow(data), nrow(data), replace = TRUE))
   md &lt;- data[ind, ]
   test &lt;- data[-ind, ]
-
+#
    model &lt;- nnet(y ~ ., 
                 data = md, 
                 trace = FALSE, 
-                size = ww[1], 
-                decay = ww[2], 
-                maxit = ww[3]
+                act.fct = &quot;logistic&quot;,
+                size = bh[1], 
+                decay = bh[2], 
+                maxit = bh[3]
                 )
   
   # Predicting on the test set
@@ -550,10 +580,10 @@ for(i in 1:n){
   }
 
 mean(auc)</code></pre>
-<pre><code>## [1] 0.865119</code></pre>
+<pre><code>## [1] 0.8664228</code></pre>
 <pre class="r"><code>sd(auc)</code></pre>
-<pre><code>## [1] 0.01793909</code></pre>
-<pre class="r"><code># plot auc and mean
+<pre><code>## [1] 0.01820334</code></pre>
+<pre class="r"><code># plot auc and 95% CI
 plot(auc, col=&quot;red&quot;)
 abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
 abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)

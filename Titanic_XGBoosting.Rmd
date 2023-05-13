@@ -32,14 +32,12 @@ train_titanic <- read_csv("train.csv")
 ```
 
 The collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
-```{r, warning=FALSE}
+```{r}
 library(dplyr)
 
-data <- train_titanic[ ,c(2, 3, 5, 6, 7, 8, 10, 12)]
+selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
+data <- train_titanic[selected_cols]
 data <- data %>% rename(y = Survived)
-
-
-
 ```
 
 convert the characters to factors. convert our y variable to numeric for XGBoosting
@@ -103,26 +101,24 @@ str(data)
 
 # xgBoosting 
 
-This code performs hyperparameter tuning for an XGBoost model using a bootstrapping approach. The number of iterations is controlled by the variable n. At each iteration, the code samples s hyperparameter combinations from a pre-defined grid. Then, the data is split into training and validation sets, and the selected hyperparameters are evaluated v times on the validation set.
+This code performs hyperparameter tuning for an XGBoost model. The number of iterations is controlled by the variable n. At each iteration, the code samples s hyperparameter combinations from a pre-defined grid. Then, the data is split into modeling and test data sets. the modeling data is boostrapped to make train and val data sets to to be used to select hyperparameters to be tested.
 
 For each hyperparameter combination, the average area under the curve (AUC) is calculated across the v validation runs. The hyperparameter combination with the highest average AUC is selected as the best hyperparameters for that iteration. The selected hyperparameters and their corresponding AUC are stored in the opt matrix.
 
-Finally, the code trains an XGBoost model on the entire model data set using the best hyperparameters from each iteration. The AUC of the trained model is evaluated on a hold-out test set, and the results are stored in opt. A weakness i have found is that the final test on be validated hyperparameters is only preformed once since the data is kept seperate.
+Finally, the code trains an XGBoost model on the modeldata(both train and val) set using the best hyperparameters from each iteration. The AUC of that model is evaluated on a hold-out test set, and the results are stored in opt. 
 
 Note that the hyperparameters being tuned are nrounds, max_depth, eta, subsample, colsample_bytree, gamma, min_child_weight, alpha, and lambda. The nthread parameter controls the number of threads to use during training.
 
-Overall, this code can be useful for finding the best set of hyperparameters for an XGBoost model. The bootstrapping approach can help mitigate overfitting, and the use of a pre-defined grid can help avoid an exhaustive search of the hyperparameter space.
-
-This grid is very limited because of processing power. it is relativly tuned.
+This grid is very limited because of processing power. it is relatively tuned.
 ```{r, warning=FALSE}
 grid <- expand.grid(
-  nrounds = seq(300, 300, by = 100),
+  nrounds = seq(300, 300, by = 0),
   max_depth = seq(13, 16, by = 2),
   eta = seq(0.1, 0.2, by = 0.01),
   subsample = seq(0.7, 0.8, by = 0.1),
   colsampe_bytree = seq(0.7, 0.8, by = 0.1),
   gamma = seq(1, 2, by = 1),
-  min_child_weight = seq(0, 2, by = 1),
+  min_child_weight = seq(0, 5, by = 2),
   alpha = seq(0, 1, by = 1),
   lambda = seq(0, 1, by = 1)
 )
@@ -134,34 +130,34 @@ library(ROCR)
 
 start_time <- Sys.time()
 
-n <- 20
-s <- 250
-v <- 5
-esr <- 10
+n <- 50 # how many times we repeat the algorithm
+s <- 500 # how many hyperparamter sets are validated, length of randomgrid
+v <- 10 # how many times we bootstrapped a sample for each hyperparameter set
+
+
+esr <- 5
 opt <- matrix(0, nrow = n, ncol = 11, dimnames = list(NULL, c("nrounds", "max_depth", "eta", "subsample", "colsampe_bytree", "gamma", "min_child_weight", "alpha", "lambda", "val_AUC", "Test_AUC")))
 
 auc_t <- c()
 for(j in 1:n){
   
-    
-
-  
+  # this makes the random grid by sampling from grid s times
   ind <- sample(nrow(grid), s, replace = FALSE)
   rgrid <- grid[ind, ]
   
-
+  #  this creates model data and test data
   ind1 <- sample(nrow(data), nrow(data)*0.8)
   md <- data[ind1, ]
   test <- data[-ind1, ]
   
-  auc_runs <- c()
+  v_auc_mean <- c()
   for (i in 1:nrow(rgrid)) {
     auc_tuning <- c()
 for (p in 1:v){
   
   #cat("loops: ", j, i, p, "\r")
   
-  # Initial Split
+  # bootstrap for samples
   ind2 <- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train <- md[ind2, ]
   val <- md[-ind2, ]
@@ -177,7 +173,7 @@ for (p in 1:v){
   xgb_train <- xgb.DMatrix(data = train_x, label = train_y) 
   xgb_val <- xgb.DMatrix(data = val_x, label = val_y)
 
-  # Training and evaluating the model
+  # Training the model on train data
   xgb_model <- xgb.train(params = list(objective = "binary:logistic"),
                          data = xgb_train, 
                          nrounds = rgrid[i, 1],
@@ -197,7 +193,7 @@ for (p in 1:v){
   )
 
   
-# Predicting on the val set
+# Predicting on the val data
 phat <- predict(xgb_model, xgb_val, type = "prob")
 
   # Calculating the AUC
@@ -205,14 +201,17 @@ phat <- predict(xgb_model, xgb_val, type = "prob")
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc_tuning[p] <- auc_ROCR@y.values[[1]]
 }
-auc_runs[i] <- mean(auc_tuning)
+    
+# get the mean of the hyperparamters(set) that was just run
+v_auc_mean[i] <- mean(auc_tuning)
 
 
 
- BI <- which.max(auc_runs) #best hyperparameter index
-  best_AUC <- auc_runs[BI]
+ BI <- which.max(v_auc_mean) #best hyperparameter index
+  best_AUC <- v_auc_mean[BI]
   best_params <- rgrid[BI, ]
   
+  # store the best hyperparameters and there val results
   opt[j, 1] <- best_params[1, 1]
   opt[j, 2] <- best_params[1, 2]
   opt[j, 3] <- best_params[1, 3]
@@ -222,24 +221,24 @@ auc_runs[i] <- mean(auc_tuning)
   opt[j, 7] <- best_params[1, 7]
   opt[j, 8] <- best_params[1, 8]
   opt[j, 9] <- best_params[1, 9]
-  opt[j, 10] <- max(auc_runs)
+  opt[j, 10] <- max(v_auc_mean)
 }
 
-  # One-hot coding using R's `model.matrix`
+  # One-hot coding using R's `model.matrix` for the final test
   md_x <- model.matrix(~.+0, data = md[, -which(names(md) == "y")]) 
   md_y <- md$y
  
   test_x <- model.matrix(~.+0, data = test[, -which(names(test) == "y")])
   test_y <- test$y
   
-  # Preparing efficient matrix
+  # Preparing efficient matrix for the final test
   xgb_md <- xgb.DMatrix(data = md_x, label = md_y) 
   xgb_test <- xgb.DMatrix(data = test_x, label = test_y)
   
   
   
   
-  # Training and evaluating the model
+  # Train the model with model data
   xgb_mt <- xgb.train(params = list(objective = "binary:logistic"),
                          data = xgb_md, 
                          nrounds = opt[j ,1],
@@ -268,7 +267,7 @@ phat <- predict(xgb_mt, xgb_test, type = "prob")
   auc_t <- auc_ROCR@y.values[[1]]
 
 
-
+# store the test auc
 opt[j, 11] <- auc_t
   
 }
@@ -286,11 +285,9 @@ elapsed_time
 ```
 This code will index and assign the best hyper parameters from opt into a matrix called win. 
 
-NOTE: A weakness is that the test run is one split or rather one n run. this means it is weak to a high standard deviation or variability in the models predicition. The issue is that if we want to be able to use multiple bootstrapped samples to get a average test run we will either risk overfitting the hyperparameters or will have to split the data in a awkward way.
+NOTE: A weakness is that the test run is one split or rather one n run. this means it is weak to a high standard deviation or variability in the models predicition. This issue starts to dissapear as we can run the model more times (n) as we then can look for similar hyper parameter sets and select based on there mean test scores. 
 
-Im want to do more reasearch on if there is a way boostrap samples for a average and not overfit the hyperparameters/model
-
-This takes the top 50 percent of hyperparameters based on there 
+This takes the top 50 percent of hyperparameters based on there test scores and puts them into a matrix named win
 ```{r, warning=FALSE}
 
 th <- quantile(opt[,11], probs = 0.50)
@@ -307,7 +304,8 @@ library(ROCR)
 
 n <- 400
 w <- nrow(win)
-esr <- 10
+esr <- 10 # early stopping rounds
+
 #collums are hyper param set
 bs_results <- matrix(0, nrow = n, ncol = w)
 
@@ -361,32 +359,29 @@ for (i in 1:n) {
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc <- auc_ROCR@y.values[[1]]
   
+  # matrix with n rows and w collums. each collum is a hyper parameter
  bs_results[i, j] <- auc 
 }
 }
 ```
 
-This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the corelating hyperparameters into ww.
+This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the correlating hyperparameters into bh.
 ```{r, warning=FALSE}
 bh_ind <- which.max(colMeans(bs_results))
-ww <- win[bh_ind, ]
+bh <- win[bh_ind, ]
 mean(bs_results[,bh_ind])
 cm <- as.vector(colMeans(bs_results))
 win <- cbind(win, av_ovr_n_runs=cm)
 ```
 
-
-
-This is the final run. it uses bootrapping and runs n times.
+This is the final run. it uses bootstrapping and runs n times. This is mostly to do a final proof and present the auc 
 ```{r, warning=FALSE}
 library(xgboost)
 library(ROCR)
 
 n <- 1000
 
-
 esr <- 10
-
 
  auc <- c()
 for (i in 1:n) {
@@ -409,18 +404,18 @@ for (i in 1:n) {
   xgb_md <- xgb.DMatrix(data = md_x, label = md_y) 
   xgb_test <- xgb.DMatrix(data = test_x, label = test_y)
   
-  # Modeling
+  # Modeling with md
   xgb_m <- xgb.train(params = list(objective = "binary:logistic"),
                                data = xgb_md, 
-                               nrounds = ww[1],
-                               max_depth = ww[2],
-                               eta = ww[3], 
-                               subsample = ww[4],
-                               colsample_bytree = ww[5],
-                               gamma = ww[6],
-                               min_child_weight = ww[7],
-                               alpha = ww[8],
-                               lambda = ww[9],
+                               nrounds = bh[1],
+                               max_depth = bh[2],
+                               eta = bh[3], 
+                               subsample = bh[4],
+                               colsample_bytree = bh[5],
+                               gamma = bh[6],
+                               min_child_weight = bh[7],
+                               alpha = bh[8],
+                               lambda = bh[9],
                                early_stopping_rounds = esr,
                                eval_metric = "auc",
                                watchlist = list(train = xgb_md, val = xgb_test),
@@ -447,7 +442,7 @@ Note: we are representing individual observations/model runs so we use SD not SE
                              
 ```{r, warning=FALSE}
 
-# plot auc and mean
+# plot auc and 95% CI of the runs
 plot(auc, col="red")
 abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
 abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
@@ -455,4 +450,5 @@ abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
 
 ```
 
-If we are finding a threshold he then need to pay attention to the watchlist outputs and tune nrounds accordingly
+If we are finding a threshold he then need to pay attention to the watchlist outputs and tune nrounds accordingly. 
+also note i am use early stopping rounds in my loops.
