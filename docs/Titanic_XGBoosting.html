@@ -10,13 +10,14 @@
 
 
 
+<meta name="date" content="2024-01-28" />
 
 <title>Titanic XGBoosting</title>
 
-<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -29,9 +30,10 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
-<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -42,18 +44,109 @@
   ul.task-list{list-style: none;}
     </style>
 
-<style type="text/css">code{white-space: pre;}</style>
-<script type="text/javascript">
-if (window.hljs) {
-  hljs.configure({languages: []});
-  hljs.initHighlightingOnLoad();
-  if (document.readyState && document.readyState === "complete") {
-    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
   }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
 }
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  background-color: #f8f8f8; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } /* Alert */
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #204a87; } /* Attribute */
+code span.bn { color: #0000cf; } /* BaseN */
+code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4e9a06; } /* Char */
+code span.cn { color: #8f5902; } /* Constant */
+code span.co { color: #8f5902; font-style: italic; } /* Comment */
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code span.dt { color: #204a87; } /* DataType */
+code span.dv { color: #0000cf; } /* DecVal */
+code span.er { color: #a40000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #0000cf; } /* Float */
+code span.fu { color: #204a87; font-weight: bold; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code span.ot { color: #8f5902; } /* Other */
+code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code span.sc { color: #ce5c00; font-weight: bold; } /* SpecialChar */
+code span.ss { color: #4e9a06; } /* SpecialString */
+code span.st { color: #4e9a06; } /* String */
+code span.va { color: #000000; } /* Variable */
+code span.vs { color: #4e9a06; } /* VerbatimString */
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
 </script>
-
-
 
 
 
@@ -219,6 +312,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -226,6 +382,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -273,500 +439,1025 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Titanic XGBoosting</h1>
+<h4 class="date">2024-01-28</h4>
 
 </div>
 
 
-<p>This will be the file for my titanic xgb</p>
-<div id="data-prep" class="section level1">
-<h1>Data Prep</h1>
-<p>Download the Data</p>
-<pre class="r"><code>library(readr)
-
-train_titanic &lt;- read_csv(&quot;train.csv&quot;)</code></pre>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">cache =</span> <span class="cn">TRUE</span>, <span class="at">warning =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<p>Simon Raymond</p>
+<div id="data-preparation-and-setup" class="section level2">
+<h2>1. Data Preparation and Setup</h2>
+<p>Initial data loading and basic transformations.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    <span class="fu">library</span>(plotly)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    <span class="fu">library</span>(readr)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="fu">library</span>(dplyr)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="fu">library</span>(forcats)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    <span class="fu">library</span>(stringr)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    <span class="fu">library</span>(tidyr)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="fu">library</span>(DataExplorer)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    <span class="fu">library</span>(randomForest)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    <span class="fu">library</span>(xgboost)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    <span class="fu">library</span>(shiny)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    <span class="fu">library</span>(GGally)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="fu">library</span>(ROCR)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    <span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>    <span class="fu">library</span>(doParallel)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Loading datasets</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;train.csv&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 891 Columns: 12
-## ── Column specification ───────────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (5): Name, Sex, Ticket, Cabin, Embarked
 ## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p>The collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare,
-Emarked as they are the easiest to work with. other possibilities
-include using the titles for names</p>
-<pre class="r"><code>library(dplyr)
-
-selected_cols &lt;- c(&quot;Survived&quot;, &quot;Pclass&quot;, &quot;Sex&quot;, &quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;, &quot;Embarked&quot;)
-data &lt;- train_titanic[selected_cols]
-data &lt;- data %&gt;% rename(y = Survived)</code></pre>
-<p>convert the characters to factors. convert our y variable to numeric
-for XGBoosting</p>
-<pre class="r"><code>char_cols &lt;- sapply(data, is.character)
-data[, char_cols] &lt;- lapply(data[, char_cols], factor)
-data$y &lt;- as.numeric(data$y)</code></pre>
-<p>we have NAs we need to deal with</p>
-<pre class="r"><code>colSums(is.na(data))</code></pre>
-<pre><code>##        y   Pclass      Sex      Age    SibSp    Parch     Fare Embarked 
-##        0        0        0      177        0        0        0        2</code></pre>
-<p>First i am going to predict the NAs for Age with a simple Random
-Forest model.</p>
-<pre class="r"><code>na_index &lt;- which(is.na(data$Age))#index the missing NAs
-na_data &lt;- data[na_index, ]#create a data frame of the NAs indexed
-c_data &lt;-data[-na_index, ]#take the complete data to c_data
-na_data &lt;- na_data[, -which(names(data) == &quot;Age&quot;)] # take out the collum that only has NAs in it</code></pre>
-<p>i will use na.roughfix() for the two missing Embarked values</p>
-<pre class="r"><code>library(randomForest)
-
-c_data &lt;- na.roughfix(c_data)# there are two NAs in embarked
-na_data &lt;-  na.roughfix(na_data)</code></pre>
-<p>Predict our NAs</p>
-<pre class="r"><code>library(randomForest)
-
-model_rf &lt;- randomForest(Age ~.,
-                         ntree = 1200, 
-                         data = c_data) 
-
-pred_na &lt;- predict(model_rf, na_data)</code></pre>
-<p>This binds our predictions to the corresponding index number for each
-missing NA in “data”</p>
-<pre class="r"><code>na_n_ind &lt;- cbind(pred_na, na_index)
-
-data$Age[na_n_ind[, 2]] &lt;- na_n_ind[, 1]</code></pre>
-<p>finnaly just use na.roughfix() for the two embarked values in the
-actualy data sets</p>
-<pre class="r"><code>library(randomForest)
-
-data &lt;- na.roughfix(data)
-colSums(is.na(data))</code></pre>
-<pre><code>##        y   Pclass      Sex      Age    SibSp    Parch     Fare Embarked 
-##        0        0        0        0        0        0        0        0</code></pre>
-<pre class="r"><code>str(data)</code></pre>
-<pre><code>## tibble [891 × 8] (S3: tbl_df/tbl/data.frame)
-##  $ y       : num [1:891] 0 1 1 1 0 0 0 0 1 1 ...
-##  $ Pclass  : num [1:891] 3 1 3 1 3 3 1 3 3 2 ...
-##  $ Sex     : Factor w/ 2 levels &quot;female&quot;,&quot;male&quot;: 2 1 1 1 2 2 2 2 1 1 ...
-##  $ Age     : num [1:891] 22 38 26 35 35 ...
-##  $ SibSp   : num [1:891] 1 1 0 1 0 0 0 3 0 1 ...
-##  $ Parch   : num [1:891] 0 0 0 0 0 0 0 1 2 0 ...
-##  $ Fare    : num [1:891] 7.25 71.28 7.92 53.1 8.05 ...
-##  $ Embarked: Factor w/ 3 levels &quot;C&quot;,&quot;Q&quot;,&quot;S&quot;: 3 1 3 3 3 2 3 3 3 1 ...</code></pre>
-</div>
-<div id="xgboosting" class="section level1">
-<h1>xgBoosting</h1>
-<p>This code performs hyperparameter tuning for an XGBoost model. The
-number of iterations is controlled by the variable n. At each iteration,
-the code samples s hyperparameter combinations from a pre-defined grid.
-Then, the data is split into modeling and test data sets. the modeling
-data is boostrapped to make train and val data sets to to be used to
-select hyperparameters to be tested.</p>
-<p>For each hyperparameter combination, the average area under the curve
-(AUC) is calculated across the v validation runs. The hyperparameter
-combination with the highest average AUC is selected as the best
-hyperparameters for that iteration. The selected hyperparameters and
-their corresponding AUC are stored in the opt matrix.</p>
-<p>Finally, the code trains an XGBoost model on the modeldata(both train
-and val) set using the best hyperparameters from each iteration. The AUC
-of that model is evaluated on a hold-out test set, and the results are
-stored in opt.</p>
-<p>Note that the hyperparameters being tuned are nrounds, max_depth,
-eta, subsample, colsample_bytree, gamma, min_child_weight, alpha, and
-lambda. The nthread parameter controls the number of threads to use
-during training.</p>
-<p>This grid is very limited because of processing power. it is
-relatively tuned.</p>
-<pre class="r"><code>grid &lt;- expand.grid(
-  nrounds = seq(300, 300, by = 0),
-  max_depth = seq(13, 16, by = 2),
-  eta = seq(0.1, 0.2, by = 0.01),
-  subsample = seq(0.7, 0.8, by = 0.1),
-  colsampe_bytree = seq(0.7, 0.8, by = 0.1),
-  gamma = seq(1, 2, by = 1),
-  min_child_weight = seq(0, 5, by = 2),
-  alpha = seq(0, 1, by = 1),
-  lambda = seq(0, 1, by = 1)
-)</code></pre>
-<pre class="r"><code>library(xgboost)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;xgboost&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pd <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;test.csv&quot;</span>)</span></code></pre></div>
+<pre><code>## Rows: 418 Columns: 11
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (6): PassengerId, Pclass, Age, SibSp, Parch, Fare
 ## 
-##     slice</code></pre>
-<pre class="r"><code>library(ROCR)
-
-start_time &lt;- Sys.time()
-
-n &lt;- 50 # how many times we repeat the algorithm
-s &lt;- 500 # how many hyperparamter sets are validated, length of randomgrid
-v &lt;- 10 # how many times we bootstrapped a sample for each hyperparameter set
-
-
-esr &lt;- 5
-opt &lt;- matrix(0, nrow = n, ncol = 11, dimnames = list(NULL, c(&quot;nrounds&quot;, &quot;max_depth&quot;, &quot;eta&quot;, &quot;subsample&quot;, &quot;colsampe_bytree&quot;, &quot;gamma&quot;, &quot;min_child_weight&quot;, &quot;alpha&quot;, &quot;lambda&quot;, &quot;val_AUC&quot;, &quot;Test_AUC&quot;)))
-
-auc_t &lt;- c()
-for(j in 1:n){
-  
-  # this makes the random grid by sampling from grid s times
-  ind &lt;- sample(nrow(grid), s, replace = FALSE)
-  rgrid &lt;- grid[ind, ]
-  
-  #  this creates model data and test data
-  ind1 &lt;- sample(nrow(data), nrow(data)*0.8)
-  md &lt;- data[ind1, ]
-  test &lt;- data[-ind1, ]
-  
-  v_auc_mean &lt;- c()
-  for (i in 1:nrow(rgrid)) {
-    auc_tuning &lt;- c()
-for (p in 1:v){
-  
-  #cat(&quot;loops: &quot;, j, i, p, &quot;\r&quot;)
-  
-  # bootstrap for samples
-  ind2 &lt;- unique(sample(nrow(md), nrow(md), replace = TRUE))
-  train &lt;- md[ind2, ]
-  val &lt;- md[-ind2, ]
-
-  # One-hot coding using R&#39;s `model.matrix`
-  train_x &lt;- model.matrix(~.+0, data = train[, -which(names(train) == &quot;y&quot;)]) 
-  train_y &lt;- train$y
- 
-  val_x &lt;- model.matrix(~.+0, data = val[, -which(names(val) == &quot;y&quot;)])
-  val_y &lt;- val$y
-  
-  # Preparing efficient matrix
-  xgb_train &lt;- xgb.DMatrix(data = train_x, label = train_y) 
-  xgb_val &lt;- xgb.DMatrix(data = val_x, label = val_y)
-
-  # Training the model on train data
-  xgb_model &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
-                         data = xgb_train, 
-                         nrounds = rgrid[i, 1],
-                         max_depth = rgrid[i, 2],
-                         eta = rgrid[i, 3], 
-                         subsample = rgrid[i, 4],
-                         colsample_bytree = rgrid[i, 5],
-                         gamma = rgrid[i, 6],
-                         min_child_weight = rgrid[i, 7],
-                         alpha = rgrid[i, 8],
-                         lambda = rgrid[i, 9],
-                         early_stopping_rounds = esr,
-                         eval_metric = &quot;auc&quot;,
-                         watchlist = list(train = xgb_train, val = xgb_val),
-                         verbose = FALSE,
-                         nthread = 3
-  )
-
-  
-# Predicting on the val data
-phat &lt;- predict(xgb_model, xgb_val, type = &quot;prob&quot;)
-
-  # Calculating the AUC
-  pred_rocr &lt;- prediction(phat, val_y)
-  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
-  auc_tuning[p] &lt;- auc_ROCR@y.values[[1]]
-}
-    
-# get the mean of the hyperparamters(set) that was just run
-v_auc_mean[i] &lt;- mean(auc_tuning)
-
-
-
- BI &lt;- which.max(v_auc_mean) #best hyperparameter index
-  best_AUC &lt;- v_auc_mean[BI]
-  best_params &lt;- rgrid[BI, ]
-  
-  # store the best hyperparameters and there val results
-  opt[j, 1] &lt;- best_params[1, 1]
-  opt[j, 2] &lt;- best_params[1, 2]
-  opt[j, 3] &lt;- best_params[1, 3]
-  opt[j, 4] &lt;- best_params[1, 4]
-  opt[j, 5] &lt;- best_params[1, 5]
-  opt[j, 6] &lt;- best_params[1, 6]
-  opt[j, 7] &lt;- best_params[1, 7]
-  opt[j, 8] &lt;- best_params[1, 8]
-  opt[j, 9] &lt;- best_params[1, 9]
-  opt[j, 10] &lt;- max(v_auc_mean)
-}
-
-  # One-hot coding using R&#39;s `model.matrix` for the final test
-  md_x &lt;- model.matrix(~.+0, data = md[, -which(names(md) == &quot;y&quot;)]) 
-  md_y &lt;- md$y
- 
-  test_x &lt;- model.matrix(~.+0, data = test[, -which(names(test) == &quot;y&quot;)])
-  test_y &lt;- test$y
-  
-  # Preparing efficient matrix for the final test
-  xgb_md &lt;- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test &lt;- xgb.DMatrix(data = test_x, label = test_y)
-  
-  
-  
-  
-  # Train the model with model data
-  xgb_mt &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
-                         data = xgb_md, 
-                         nrounds = opt[j ,1],
-                         max_depth = opt[j ,2],
-                         eta = opt[j ,3], 
-                         subsample = opt[j ,4],
-                         colsample_bytree = opt[j ,5],
-                         gamma = opt[j ,6],
-                         min_child_weight = opt[j ,7],
-                         alpha = opt[j ,8],
-                         lambda = opt[j ,9],
-                         early_stopping_rounds = esr,
-                         eval_metric = &quot;auc&quot;,
-                         watchlist = list(train = xgb_md, val = xgb_test),
-                         verbose = FALSE,
-                         nthread = 3
-  )
-
-  
-# Predicting on the test set
-phat &lt;- predict(xgb_mt, xgb_test, type = &quot;prob&quot;)
-
-  # Calculating the AUC
-  pred_rocr &lt;- prediction(phat, test_y)
-  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
-  auc_t &lt;- auc_ROCR@y.values[[1]]
-
-
-# store the test auc
-opt[j, 11] &lt;- auc_t
-  
-}
-
-
-
-end_time &lt;- Sys.time()
-
-elapsed_time &lt;- end_time - start_time
-
-elapsed_time</code></pre>
-<pre><code>## Time difference of 4.536487 hours</code></pre>
-<p>This code will index and assign the best hyper parameters from opt
-into a matrix called win.</p>
-<p>NOTE: A weakness is that the test run is one split or rather one n
-run. this means it is weak to a high standard deviation or variability
-in the models predicition. This issue starts to dissapear as we can run
-the model more times (n) as we then can look for similar hyper parameter
-sets and select based on there mean test scores.</p>
-<p>This takes the top 50 percent of hyperparameters based on there test
-scores and puts them into a matrix named win</p>
-<pre class="r"><code>th &lt;- quantile(opt[,11], probs = 0.50)
-ind_opt &lt;- which(opt[,11] &gt;= th)
-
-win &lt;- opt[ind_opt, ]
-win</code></pre>
-<pre><code>##       nrounds max_depth  eta subsample colsampe_bytree gamma min_child_weight
-##  [1,]     300        13 0.12       0.7             0.7     2                0
-##  [2,]     300        13 0.19       0.8             0.8     1                0
-##  [3,]     300        13 0.13       0.8             0.8     1                2
-##  [4,]     300        15 0.12       0.7             0.7     1                0
-##  [5,]     300        15 0.11       0.7             0.8     2                0
-##  [6,]     300        13 0.13       0.8             0.8     2                0
-##  [7,]     300        13 0.17       0.8             0.7     2                0
-##  [8,]     300        13 0.20       0.7             0.8     1                0
-##  [9,]     300        15 0.18       0.8             0.8     1                2
-## [10,]     300        13 0.18       0.7             0.8     1                2
-## [11,]     300        15 0.13       0.8             0.7     1                0
-## [12,]     300        13 0.16       0.7             0.8     2                0
-## [13,]     300        13 0.14       0.7             0.8     2                0
-## [14,]     300        13 0.13       0.7             0.8     1                0
-## [15,]     300        13 0.15       0.8             0.8     1                0
-## [16,]     300        13 0.12       0.7             0.8     2                2
-## [17,]     300        15 0.11       0.8             0.7     2                0
-## [18,]     300        15 0.18       0.8             0.7     2                0
-## [19,]     300        15 0.13       0.8             0.7     2                0
-## [20,]     300        15 0.16       0.8             0.8     2                2
-## [21,]     300        15 0.17       0.8             0.8     1                0
-## [22,]     300        13 0.18       0.8             0.8     1                0
-## [23,]     300        15 0.15       0.7             0.8     1                2
-## [24,]     300        13 0.13       0.8             0.8     2                0
-## [25,]     300        13 0.14       0.8             0.7     1                0
-##       alpha lambda   val_AUC  Test_AUC
-##  [1,]     0      1 0.8893181 0.9039840
-##  [2,]     0      1 0.8797467 0.9325649
-##  [3,]     0      1 0.8852423 0.9233815
-##  [4,]     0      1 0.8886325 0.9101030
-##  [5,]     0      1 0.8827529 0.9322943
-##  [6,]     0      1 0.8959550 0.9107962
-##  [7,]     1      0 0.8889335 0.8998588
-##  [8,]     0      1 0.8907071 0.9155742
-##  [9,]     0      0 0.8884785 0.9126359
-## [10,]     0      1 0.8872552 0.9164482
-## [11,]     1      0 0.8787819 0.9102772
-## [12,]     0      1 0.8867345 0.9068627
-## [13,]     0      0 0.8906389 0.9028560
-## [14,]     0      1 0.8920691 0.9019162
-## [15,]     1      0 0.8902942 0.9047348
-## [16,]     0      0 0.8837673 0.9226656
-## [17,]     0      1 0.8911784 0.9096491
-## [18,]     0      1 0.8882821 0.9025337
-## [19,]     0      1 0.8924070 0.9032938
-## [20,]     0      0 0.8802460 0.9121078
-## [21,]     0      1 0.8926127 0.9106410
-## [22,]     0      1 0.8940189 0.9045095
-## [23,]     0      1 0.8864139 0.9244171
-## [24,]     1      0 0.8932269 0.9029082
-## [25,]     0      1 0.8915600 0.9125575</code></pre>
-<p>This code is using bootstrapping and runs the best hyperparamters
-that we picked before. it tests the selected hyper parameters n times.
-since we are not tuning in it we can use all of the data in it.</p>
-<pre class="r"><code>library(xgboost)
-library(ROCR)
-
-n &lt;- 400
-w &lt;- nrow(win)
-esr &lt;- 10 # early stopping rounds
-
-#collums are hyper param set
-bs_results &lt;- matrix(0, nrow = n, ncol = w)
-
-
-
-for (i in 1:n) {
-  for (j in 1:w){
-    auc &lt;- c()
-  #cat(&quot;loops: &quot;, i, j, &quot;\r&quot;)
-  
-  # Initial Split
-  ind &lt;- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  mdf&lt;- data[ind, ]
-  test &lt;- data[-ind, ]
-  
-  # One-hot coding using R&#39;s `model.matrix`
-  md_y &lt;- mdf$y
-  test_y &lt;- test$y
-  md_x &lt;- model.matrix(~.+0, data = mdf[, -which(names(mdf) == &quot;y&quot;)]) 
-  test_x &lt;- model.matrix(~.+0, data = test[, -which(names(test) == &quot;y&quot;)])
-  
-  # Preparing efficient matrix
-  xgb_md &lt;- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test &lt;- xgb.DMatrix(data = test_x, label = test_y)
-  
-  # Training and evaluating the model
-  xgb_m &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
-                               data = xgb_md, 
-                               nrounds = win[j, 1],
-                               max_depth = win[j, 2],
-                               eta = win[j, 3], 
-                               subsample = win[j, 4],
-                               colsample_bytree = win[j, 5],
-                               gamma = win[j, 6],
-                               min_child_weight = win[j, 7],
-                               alpha = win[j, 8],
-                               lambda = win[j, 9],
-                               early_stopping_rounds = esr,
-                               eval_metric = &quot;auc&quot;,
-                               watchlist = list(train = xgb_md, val = xgb_test),
-                               verbose = FALSE,
-                               nthread = 3
-                              
-  )
-  
-  # Predicting on the test set
-  phat &lt;- predict(xgb_m, xgb_test, type = &quot;prob&quot;)
-  
-  # Calculating the AUC
-  pred_rocr &lt;- prediction(phat, test_y)
-  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
-  auc &lt;- auc_ROCR@y.values[[1]]
-  
-  # matrix with n rows and w collums. each collum is a hyper parameter
- bs_results[i, j] &lt;- auc 
-}
-}</code></pre>
-<p>This code takes the colmeans of the matrix that gave our results.
-then we bind these results onto the win matrix for presentation. it also
-takes the index of the best run from before and saves the correlating
-hyperparameters into bh.</p>
-<pre class="r"><code>bh_ind &lt;- which.max(colMeans(bs_results))
-bh &lt;- win[bh_ind, ]
-mean(bs_results[,bh_ind])</code></pre>
-<pre><code>## [1] 0.8873848</code></pre>
-<pre class="r"><code>cm &lt;- as.vector(colMeans(bs_results))
-win &lt;- cbind(win, av_ovr_n_runs=cm)</code></pre>
-<p>This is the final run. it uses bootstrapping and runs n times. This
-is mostly to do a final proof and present the auc</p>
-<pre class="r"><code>library(xgboost)
-library(ROCR)
-
-n &lt;- 1000
-
-esr &lt;- 10
-
- auc &lt;- c()
-for (i in 1:n) {
-
-   
-  #cat(&quot;loops: &quot;, i, &quot;\r&quot;)
-  
-  # Initial Split This is bootstrapping
-  ind &lt;- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  mdf&lt;- data[ind, ]
-  test &lt;- data[-ind, ]
-  
-  # One-hot coding using R&#39;s `model.matrix`
-  md_y &lt;- mdf$y
-  test_y &lt;- test$y
-  md_x &lt;- model.matrix(~.+0, data = mdf[, -which(names(mdf) == &quot;y&quot;)]) 
-  test_x &lt;- model.matrix(~.+0, data = test[, -which(names(test) == &quot;y&quot;)])
-  
-  # Preparing efficient matrix
-  xgb_md &lt;- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test &lt;- xgb.DMatrix(data = test_x, label = test_y)
-  
-  # Modeling with md
-  xgb_m &lt;- xgb.train(params = list(objective = &quot;binary:logistic&quot;),
-                               data = xgb_md, 
-                               nrounds = bh[1],
-                               max_depth = bh[2],
-                               eta = bh[3], 
-                               subsample = bh[4],
-                               colsample_bytree = bh[5],
-                               gamma = bh[6],
-                               min_child_weight = bh[7],
-                               alpha = bh[8],
-                               lambda = bh[9],
-                               early_stopping_rounds = esr,
-                               eval_metric = &quot;auc&quot;,
-                               watchlist = list(train = xgb_md, val = xgb_test),
-                               verbose = FALSE,
-                               nthread = 3
-                              
-  )
-  
-  # Predicting on the test set
-  phat &lt;- predict(xgb_m, xgb_test, type = &quot;prob&quot;)
-  
-  # Calculating the AUC
-  pred_rocr &lt;- prediction(phat, test_y)
-  auc_ROCR &lt;- performance(pred_rocr, measure = &quot;auc&quot;)
-  auc[i] &lt;- auc_ROCR@y.values[[1]]
-}
- 
- mean(auc)</code></pre>
-<pre><code>## [1] 0.88462</code></pre>
-<pre class="r"><code> sd(auc)</code></pre>
-<pre><code>## [1] 0.01741747</code></pre>
-<p>This presents the mean and 95% CI of the model runs Note: we are
-representing individual observations/model runs so we use SD not SE.</p>
-<pre class="r"><code># plot auc and 95% CI of the runs
-plot(auc, col=&quot;red&quot;)
-abline(a = mean(auc), b = 0, col = &quot;blue&quot;, lwd = 2)
-abline(a = mean(auc)-1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)
-abline(a = mean(auc)+1.96*sd(auc), b = 0, col = &quot;green&quot;, lwd = 3)</code></pre>
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Initial data exploration</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">introduce</span>(data)</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 9
+##    rows columns discrete_columns continuous_columns all_missing_columns
+##   &lt;int&gt;   &lt;int&gt;            &lt;int&gt;              &lt;int&gt;               &lt;int&gt;
+## 1   891      12                5                  7                   0
+## # ℹ 4 more variables: total_missing_values &lt;int&gt;, complete_rows &lt;int&gt;,
+## #   total_observations &lt;int&gt;, memory_usage &lt;dbl&gt;</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">plot_intro</span>()</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code></pre></div>
+<pre><code>## Rows: 891
+## Columns: 12
+## $ PassengerId &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,…
+## $ Survived    &lt;dbl&gt; 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1…
+## $ Pclass      &lt;dbl&gt; 3, 1, 3, 1, 3, 3, 1, 3, 3, 2, 3, 1, 3, 3, 3, 2, 3, 2, 3, 3…
+## $ Name        &lt;chr&gt; &quot;Braund, Mr. Owen Harris&quot;, &quot;Cumings, Mrs. John Bradley (Fl…
+## $ Sex         &lt;chr&gt; &quot;male&quot;, &quot;female&quot;, &quot;female&quot;, &quot;female&quot;, &quot;male&quot;, &quot;male&quot;, &quot;mal…
+## $ Age         &lt;dbl&gt; 22, 38, 26, 35, 35, NA, 54, 2, 27, 14, 4, 58, 20, 39, 14, …
+## $ SibSp       &lt;dbl&gt; 1, 1, 0, 1, 0, 0, 0, 3, 0, 1, 1, 0, 0, 1, 0, 0, 4, 0, 1, 0…
+## $ Parch       &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 0…
+## $ Ticket      &lt;chr&gt; &quot;A/5 21171&quot;, &quot;PC 17599&quot;, &quot;STON/O2. 3101282&quot;, &quot;113803&quot;, &quot;37…
+## $ Fare        &lt;dbl&gt; 7.2500, 71.2833, 7.9250, 53.1000, 8.0500, 8.4583, 51.8625,…
+## $ Cabin       &lt;chr&gt; NA, &quot;C85&quot;, NA, &quot;C123&quot;, NA, NA, &quot;E46&quot;, NA, NA, NA, &quot;G6&quot;, &quot;C…
+## $ Embarked    &lt;chr&gt; &quot;S&quot;, &quot;C&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;Q&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;C&quot;, &quot;S&quot;, &quot;S&quot;…</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">plot_missing</span>()</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">profile_missing</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 12 × 3
+##    feature     num_missing pct_missing
+##    &lt;fct&gt;             &lt;int&gt;       &lt;dbl&gt;
+##  1 PassengerId           0     0      
+##  2 Survived              0     0      
+##  3 Pclass                0     0      
+##  4 Name                  0     0      
+##  5 Sex                   0     0      
+##  6 Age                 177     0.199  
+##  7 SibSp                 0     0      
+##  8 Parch                 0     0      
+##  9 Ticket                0     0      
+## 10 Fare                  0     0      
+## 11 Cabin               687     0.771  
+## 12 Embarked              2     0.00224</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">plot_density</span>()</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
+</div>
+<div id="feature-engineering" class="section level2">
+<h2>2. Feature Engineering</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Extracting new features and handling missing values</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>    <span class="at">Ticket_Length =</span> <span class="fu">nchar</span>(Ticket),</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>    <span class="at">Ticket_Is_Number =</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">D&quot;</span>, Ticket),</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    <span class="at">Title =</span> <span class="fu">str_extract</span>(Name, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">b[[:alpha:]]+</span><span class="sc">\\</span><span class="st">.&quot;</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>    <span class="at">Name_Length =</span> <span class="fu">nchar</span>(Name),</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>    <span class="at">Cabin_Letter =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(Cabin), <span class="fu">substr</span>(Cabin, <span class="dv">1</span>, <span class="dv">1</span>), <span class="cn">NA_character_</span>),</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>    <span class="at">Has_Cabin =</span> <span class="sc">!</span><span class="fu">is.na</span>(Cabin)</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  <span class="fu">add_count</span>(Title) <span class="sc">%&gt;%</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>    <span class="at">Title =</span> <span class="fu">ifelse</span>(n <span class="sc">&lt;</span> <span class="dv">10</span>, <span class="st">&#39;Other&#39;</span>, <span class="fu">as.character</span>(Title)), <span class="co"># Adjust threshold if needed</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>    <span class="at">Cabin_Letter =</span> <span class="fu">ifelse</span>(Cabin_Letter <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&#39;T&#39;</span>, <span class="st">&#39;G&#39;</span>), <span class="st">&#39;Missing&#39;</span>, <span class="fu">as.character</span>(Cabin_Letter)),</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>    <span class="at">Cabin_Letter =</span> <span class="fu">factor</span>(Cabin_Letter)</span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>3. Data Cleaning</h2>
+<p>Removing unnecessary columns, handling NAs, and imputing missing
+values for the Age column.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Removing unnecessary columns and initial handling of missing values</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Name, <span class="sc">-</span>Ticket, <span class="sc">-</span>Cabin) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.character), as.factor)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.factor) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">one_of</span>(<span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Embarked&quot;</span>), fct_explicit_na, <span class="at">na_level =</span> <span class="st">&quot;Missing&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Embarked =</span> <span class="fu">replace</span>(Embarked, <span class="fu">is.na</span>(Embarked), <span class="st">&quot;S&quot;</span>)) <span class="sc">%&gt;%</span> <span class="co"># from research</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Pclass =</span> <span class="fu">as.factor</span>(Pclass))</span></code></pre></div>
+<p>Imputing missing values in the ‘Age’ column using Random Forest</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Splitting the dataset</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>data_with_age <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Age))</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>data_missing_age <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(Age))</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co"># Model training</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>model_age <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Age <span class="sc">~</span> . <span class="sc">-</span> PassengerId, <span class="at">data =</span> data_with_age, <span class="at">na.action =</span> na.omit)</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co"># Predicting and filling missing Ages</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>predicted_ages <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_age, <span class="at">newdata =</span> data_missing_age)</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>data_missing_age<span class="sc">$</span>Age <span class="ot">&lt;-</span> predicted_ages</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co"># Combining datasets and reordering</span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(data_with_age, data_missing_age) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(PassengerId)</span></code></pre></div>
+</div>
+<div id="final-preperation-for-the-data" class="section level2">
+<h2>4. Final preperation for the data</h2>
+<p>Scale the numeric data</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Scale numerical columns</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>sdata <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">all_of</span>(<span class="fu">c</span>(<span class="st">&quot;Survived&quot;</span>, <span class="st">&quot;PassengerId&quot;</span>)), scale)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code></pre></div>
+<p>Get the data ready for XGBOOST</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Convert &#39;Survived&#39; to numeric for xgboost</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>sdata<span class="sc">$</span>Survived <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">factor</span>(sdata<span class="sc">$</span>Survived, <span class="at">labels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co"># Create model matrix for xgboost</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>xs <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> . <span class="sc">-</span> <span class="dv">1</span> <span class="sc">-</span> Survived <span class="sc">-</span> PassengerId, <span class="at">data =</span> sdata)</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> sdata<span class="sc">$</span>Survived</span></code></pre></div>
+</div>
+<div id="correlation-plots" class="section level2">
+<h2>5. Correlation Plots</h2>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Create dataset with numeric variables excluding &#39;PassengerId&#39;</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>dn <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>PassengerId) <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>  <span class="fu">select_if</span>(<span class="sc">~</span><span class="fu">is.numeric</span>(.)) </span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="co"># Create dataset with factor variables excluding &#39;PassengerId&#39;</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>df <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>PassengerId) <span class="sc">%&gt;%</span></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>  <span class="fu">select_if</span>(<span class="sc">~</span><span class="fu">is.factor</span>(.)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>  <span class="fu">bind_cols</span>(<span class="fu">select</span>(data, Survived))</span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a>total_levels <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Survived), <span class="cf">function</span>(x) <span class="cf">if</span>(<span class="fu">is.factor</span>(x)) <span class="fu">nlevels</span>(x) <span class="cf">else</span> <span class="dv">0</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a>sorted_vars <span class="ot">&lt;-</span> <span class="fu">names</span>(total_levels[<span class="fu">order</span>(total_levels, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)])</span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a>mid_point <span class="ot">&lt;-</span> <span class="fu">length</span>(sorted_vars) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a>group1_vars <span class="ot">&lt;-</span> sorted_vars[<span class="dv">1</span><span class="sc">:</span><span class="fu">ceiling</span>(mid_point)]</span>
+<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a>group2_vars <span class="ot">&lt;-</span> sorted_vars[(<span class="fu">ceiling</span>(mid_point) <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">length</span>(sorted_vars)]</span>
+<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" tabindex="-1"></a>group1_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(group1_vars, <span class="st">&quot;Survived&quot;</span>)</span>
+<span id="cb21-19"><a href="#cb21-19" tabindex="-1"></a>group2_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(group2_vars, <span class="st">&quot;Survived&quot;</span>)</span>
+<span id="cb21-20"><a href="#cb21-20" tabindex="-1"></a></span>
+<span id="cb21-21"><a href="#cb21-21" tabindex="-1"></a><span class="co"># Create two new datasets based on these groups</span></span>
+<span id="cb21-22"><a href="#cb21-22" tabindex="-1"></a>df1 <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>(group1_vars))</span>
+<span id="cb21-23"><a href="#cb21-23" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>(group2_vars))</span>
+<span id="cb21-24"><a href="#cb21-24" tabindex="-1"></a></span>
+<span id="cb21-25"><a href="#cb21-25" tabindex="-1"></a><span class="fu">plot_correlation</span>(df1)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">plot_correlation</span>(df2)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">plot_correlation</span>(dn)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-8-3.png" width="672" /></p>
+</div>
+<div id="feature-importance-analysis" class="section level2">
+<h2>6. Feature Importance Analysis</h2>
+<p>In a randomforest model what is the auc and the most important
+predictors</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>it <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co"># Number of iterations</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>imp_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> it, <span class="at">ncol =</span> <span class="dv">14</span>))</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="fu">colnames</span>(imp_df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Pclass&quot;</span>, <span class="st">&quot;Sex&quot;</span>, <span class="st">&quot;Age&quot;</span>, <span class="st">&quot;SibSp&quot;</span>, <span class="st">&quot;Parch&quot;</span>, <span class="st">&quot;Fare&quot;</span>, <span class="st">&quot;Embarked&quot;</span>, <span class="st">&quot;Ticket_Length&quot;</span>, </span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>                      <span class="st">&quot;Ticket_Is_Number&quot;</span>, <span class="st">&quot;Title&quot;</span>, <span class="st">&quot;Name_Length&quot;</span>, <span class="st">&quot;n&quot;</span>, <span class="st">&quot;Cabin_Letter&quot;</span>, <span class="st">&quot;Has_Cabin&quot;</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">numeric</span>(it)  <span class="co"># ensure that &#39;it&#39; is used here instead of &#39;n&#39;</span></span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>it) {</span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(data), <span class="fu">nrow</span>(data), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a>    train <span class="ot">&lt;-</span> data[ind, ]</span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a>    test <span class="ot">&lt;-</span> data[<span class="sc">-</span>ind, ]</span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a>    mod <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Survived <span class="sc">~</span> . <span class="sc">-</span> PassengerId, <span class="at">data =</span> train, <span class="at">ntree =</span> <span class="dv">1200</span>, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a>    phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod, <span class="at">newdata =</span> test, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a>    pred_roc <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, <span class="fu">as.numeric</span>(test<span class="sc">$</span>Survived))</span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a>    auc[i] <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_roc, <span class="st">&quot;auc&quot;</span>)<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" tabindex="-1"></a>    <span class="co"># Get the importance scores as a named vector</span></span>
+<span id="cb24-17"><a href="#cb24-17" tabindex="-1"></a>    imp_scores <span class="ot">&lt;-</span> <span class="fu">importance</span>(mod)</span>
+<span id="cb24-18"><a href="#cb24-18" tabindex="-1"></a>    imp_scores_vector <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(imp_scores[,<span class="dv">1</span>])  <span class="co"># Assuming you want the first column of the importance matrix</span></span>
+<span id="cb24-19"><a href="#cb24-19" tabindex="-1"></a>    <span class="fu">names</span>(imp_scores_vector) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(imp_scores)</span>
+<span id="cb24-20"><a href="#cb24-20" tabindex="-1"></a></span>
+<span id="cb24-21"><a href="#cb24-21" tabindex="-1"></a>    <span class="co"># Assign the scores to the dataframe</span></span>
+<span id="cb24-22"><a href="#cb24-22" tabindex="-1"></a>    imp_df[i, <span class="fu">names</span>(imp_scores_vector)] <span class="ot">&lt;-</span> imp_scores_vector</span>
+<span id="cb24-23"><a href="#cb24-23" tabindex="-1"></a>}</span>
+<span id="cb24-24"><a href="#cb24-24" tabindex="-1"></a></span>
+<span id="cb24-25"><a href="#cb24-25" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
+<span id="cb24-26"><a href="#cb24-26" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb24-27"><a href="#cb24-27" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">-</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span>
+<span id="cb24-28"><a href="#cb24-28" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.8796318</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.01747429</code></pre>
+<p>Rank the most important predictors</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>col_means <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(imp_df)</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>mean_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Feature =</span> <span class="fu">names</span>(col_means), <span class="at">Mean =</span> col_means)</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="co"># Plotting</span></span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a><span class="fu">ggplot</span>(mean_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Feature, Mean), <span class="at">y =</span> Mean)) <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;steelblue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Feature Importance&quot;</span>, <span class="at">x =</span> <span class="st">&quot;Feature&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Mean Importance&quot;</span>) <span class="sc">+</span></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>  <span class="fu">coord_flip</span>()  <span class="co"># Flipping coordinates for better readability</span></span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Pclass Description: Passenger class, a proxy for socio-economic
+status with 1 being the highest and 3 the lowest. Origin: Extracted
+directly from the Titanic dataset. It’s a crucial variable as passenger
+class was a significant factor in survival rates.</p>
+<p>Sex Description: Gender of the passengers, either male or female.
+Origin: Directly from the Titanic dataset. Gender played a key role in
+survival, as women were often given priority for lifeboats.</p>
+<p>Age Description: Age of the passengers. Origin: This is a primary
+variable from the Titanic dataset. Age, as a demographic factor, likely
+influenced survival chances.</p>
+<p>SibSp Description: Number of siblings or spouses aboard the Titanic.
+Origin: Taken from the Titanic dataset, it indicates family size, which
+could influence survival decisions and opportunities.</p>
+<p>Parch Description: Number of parents or children aboard. Origin: From
+the Titanic dataset, indicating if the passenger was traveling with
+family, especially with dependents.</p>
+<p>Fare Description: Passenger fare. Origin: Represents the amount paid
+for the journey, sourced from the Titanic dataset. Higher fares might
+correlate with higher passenger classes.</p>
+<p>Embarked Description: Port of embarkation (C = Cherbourg, Q =
+Queenstown, S = Southampton). Origin: Part of the original dataset,
+potentially relevant as passengers’ embarkation points might correlate
+with other socio-economic factors.</p>
+<p>Ticket_Length Description: Length of the ticket number as a numerical
+value. Origin: Engineered feature, derived from the length of the ticket
+number string. It’s a proxy to differentiate ticket types.</p>
+<p>Ticket_Is_Number Description: Boolean indicating whether the ticket
+is purely numeric. Origin: An engineered feature created to see if
+having a numeric ticket correlates with any survival pattern.</p>
+<p>Title Description: Title extracted from the passenger’s name, such as
+Mr., Mrs., etc. Origin: An engineered feature derived from passengers’
+names. It’s useful in inferring social status, gender, and marital
+status.</p>
+<p>Name_Length Description: Length of the passenger’s name. Origin: This
+is an engineered feature, indicating possibly if longer names (which
+might include titles or honorifics) correlate with social status or
+survival rate.</p>
+<p>n Description: Frequency of each title in the dataset. Origin: This
+engineered feature counts how common each title is, which can provide
+insights into the typical social status or role groups aboard the
+ship.</p>
+<p>Cabin_Letter Description: The first letter of the cabin number, which
+could indicate the deck or location on the ship. Origin: Extracted and
+engineered from the cabin information in the dataset, giving an idea
+about the passenger’s accommodation location which could influence
+survival likelihood.</p>
+<p>Has_Cabin Description: A Boolean indicating whether the passenger had
+a cabin on the Titanic. Origin: An engineered feature from the cabin
+data, representing whether the passenger had a private cabin,
+potentially correlating with class and survival rate.</p>
+</div>
+<div id="xgboost-algorithm-function" class="section level2">
+<h2>7. XGBoost Algorithm Function</h2>
+<div id="test-size" class="section level3">
+<h3>Test size</h3>
+<p>I want to quickly note that in my functions for my validation runs i
+use bootstrapping as such.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="co"># the length is just to show the % split that is being put into the index</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">sample</span>(<span class="dv">100</span>, <span class="dv">100</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
+<pre><code>## [1] 62</code></pre>
+<p>however for my Test set i am increasing the number of times a sample
+a row index so that my model data is larger. i want a range closer the
+20-25 % because my data is so small.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">sample</span>(<span class="dv">100</span>, <span class="dv">133</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
+<pre><code>## [1] 71</code></pre>
+</div>
+<div id="main-function" class="section level3">
+<h3>Main function</h3>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>run_xgb <span class="ot">&lt;-</span> <span class="cf">function</span>(xs, y, grid, n, v) {</span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  </span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>  <span class="co"># Set up parallel computing</span></span>
+<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a>  numCores <span class="ot">&lt;-</span> <span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a>  cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(numCores)</span>
+<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a>  <span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb34-7"><a href="#cb34-7" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>n, <span class="at">.combine=</span><span class="st">&#39;rbind&#39;</span>, <span class="at">.packages=</span><span class="fu">c</span>(<span class="st">&#39;xgboost&#39;</span>, <span class="st">&#39;ROCR&#39;</span>)) <span class="sc">%dopar%</span> {</span>
+<span id="cb34-9"><a href="#cb34-9" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="cb34-10"><a href="#cb34-10" tabindex="-1"></a>      <span class="co"># Bootstrap sampling</span></span>
+<span id="cb34-11"><a href="#cb34-11" tabindex="-1"></a>      ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">round</span>((<span class="fu">nrow</span>(xs) <span class="sc">+</span> <span class="fu">nrow</span>(xs)<span class="sc">/</span><span class="dv">3</span>)), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb34-12"><a href="#cb34-12" tabindex="-1"></a>      md_x <span class="ot">&lt;-</span> xs[ind, ]</span>
+<span id="cb34-13"><a href="#cb34-13" tabindex="-1"></a>      md_y <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb34-14"><a href="#cb34-14" tabindex="-1"></a>      test_x <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
+<span id="cb34-15"><a href="#cb34-15" tabindex="-1"></a>      test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
+<span id="cb34-16"><a href="#cb34-16" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" tabindex="-1"></a>      auc <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">nrow</span>(grid))</span>
+<span id="cb34-18"><a href="#cb34-18" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(grid)) {</span>
+<span id="cb34-19"><a href="#cb34-19" tabindex="-1"></a>          auc_100 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(v)</span>
+<span id="cb34-20"><a href="#cb34-20" tabindex="-1"></a>          <span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>v) {</span>
+<span id="cb34-21"><a href="#cb34-21" tabindex="-1"></a>              <span class="co"># Nested validation loop</span></span>
+<span id="cb34-22"><a href="#cb34-22" tabindex="-1"></a>              ind2 <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(md_x), <span class="fu">nrow</span>(md_x), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb34-23"><a href="#cb34-23" tabindex="-1"></a>              train_x <span class="ot">&lt;-</span> md_x[ind2, ]</span>
+<span id="cb34-24"><a href="#cb34-24" tabindex="-1"></a>              train_y <span class="ot">&lt;-</span> md_y[ind2]</span>
+<span id="cb34-25"><a href="#cb34-25" tabindex="-1"></a>              val_x <span class="ot">&lt;-</span> md_x[<span class="sc">-</span>ind2, ]  </span>
+<span id="cb34-26"><a href="#cb34-26" tabindex="-1"></a>              val_y <span class="ot">&lt;-</span> md_y[<span class="sc">-</span>ind2]</span>
+<span id="cb34-27"><a href="#cb34-27" tabindex="-1"></a></span>
+<span id="cb34-28"><a href="#cb34-28" tabindex="-1"></a>              <span class="co"># Model training</span></span>
+<span id="cb34-29"><a href="#cb34-29" tabindex="-1"></a>              params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb34-30"><a href="#cb34-30" tabindex="-1"></a>                  <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb34-31"><a href="#cb34-31" tabindex="-1"></a>                  <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb34-32"><a href="#cb34-32" tabindex="-1"></a>                  <span class="at">max_depth =</span> grid[j, <span class="st">&quot;max_depth&quot;</span>], </span>
+<span id="cb34-33"><a href="#cb34-33" tabindex="-1"></a>                  <span class="at">eta =</span> grid[j, <span class="st">&quot;eta&quot;</span>],</span>
+<span id="cb34-34"><a href="#cb34-34" tabindex="-1"></a>                  <span class="at">subsample =</span> grid[j, <span class="st">&quot;subsample&quot;</span>],</span>
+<span id="cb34-35"><a href="#cb34-35" tabindex="-1"></a>                  <span class="at">colsample_bytree =</span> grid[j, <span class="st">&quot;colsample_bytree&quot;</span>],</span>
+<span id="cb34-36"><a href="#cb34-36" tabindex="-1"></a>                  <span class="at">gamma =</span> grid[j, <span class="st">&quot;gamma&quot;</span>],</span>
+<span id="cb34-37"><a href="#cb34-37" tabindex="-1"></a>                  <span class="at">min_child_weight =</span> grid[j, <span class="st">&quot;min_child_weight&quot;</span>],</span>
+<span id="cb34-38"><a href="#cb34-38" tabindex="-1"></a>                  <span class="at">alpha =</span> grid[j, <span class="st">&quot;alpha&quot;</span>],</span>
+<span id="cb34-39"><a href="#cb34-39" tabindex="-1"></a>                  <span class="at">lambda =</span> grid[j, <span class="st">&quot;lambda&quot;</span>]</span>
+<span id="cb34-40"><a href="#cb34-40" tabindex="-1"></a>              )</span>
+<span id="cb34-41"><a href="#cb34-41" tabindex="-1"></a>              xgb_train <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_x, <span class="at">label =</span> train_y) </span>
+<span id="cb34-42"><a href="#cb34-42" tabindex="-1"></a>              xm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> xgb_train, <span class="at">nrounds =</span> grid[j, <span class="st">&quot;nrounds&quot;</span>], <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">nthread =</span> <span class="dv">1</span>)</span>
+<span id="cb34-43"><a href="#cb34-43" tabindex="-1"></a>              </span>
+<span id="cb34-44"><a href="#cb34-44" tabindex="-1"></a>              <span class="co"># AUC calculation</span></span>
+<span id="cb34-45"><a href="#cb34-45" tabindex="-1"></a>              phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xm, <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> val_x))</span>
+<span id="cb34-46"><a href="#cb34-46" tabindex="-1"></a>              pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, val_y)</span>
+<span id="cb34-47"><a href="#cb34-47" tabindex="-1"></a>              auc_100[k] <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="st">&quot;auc&quot;</span>)<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb34-48"><a href="#cb34-48" tabindex="-1"></a>          }</span>
+<span id="cb34-49"><a href="#cb34-49" tabindex="-1"></a>          auc[j] <span class="ot">&lt;-</span> <span class="fu">mean</span>(auc_100)</span>
+<span id="cb34-50"><a href="#cb34-50" tabindex="-1"></a>      }</span>
+<span id="cb34-51"><a href="#cb34-51" tabindex="-1"></a></span>
+<span id="cb34-52"><a href="#cb34-52" tabindex="-1"></a>      <span class="co"># Get the best hyperparameters</span></span>
+<span id="cb34-53"><a href="#cb34-53" tabindex="-1"></a>      BI <span class="ot">&lt;-</span> <span class="fu">which.max</span>(auc)</span>
+<span id="cb34-54"><a href="#cb34-54" tabindex="-1"></a>      params_best <span class="ot">&lt;-</span> grid[BI, ]</span>
+<span id="cb34-55"><a href="#cb34-55" tabindex="-1"></a></span>
+<span id="cb34-56"><a href="#cb34-56" tabindex="-1"></a>      <span class="co"># Retrain and test</span></span>
+<span id="cb34-57"><a href="#cb34-57" tabindex="-1"></a>      params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb34-58"><a href="#cb34-58" tabindex="-1"></a>          <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb34-59"><a href="#cb34-59" tabindex="-1"></a>          <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb34-60"><a href="#cb34-60" tabindex="-1"></a>          <span class="at">max_depth =</span> grid[BI, <span class="st">&quot;max_depth&quot;</span>], </span>
+<span id="cb34-61"><a href="#cb34-61" tabindex="-1"></a>          <span class="at">eta =</span> grid[BI, <span class="st">&quot;eta&quot;</span>],</span>
+<span id="cb34-62"><a href="#cb34-62" tabindex="-1"></a>          <span class="at">subsample =</span> grid[BI, <span class="st">&quot;subsample&quot;</span>],</span>
+<span id="cb34-63"><a href="#cb34-63" tabindex="-1"></a>          <span class="at">colsample_bytree =</span> grid[BI, <span class="st">&quot;colsample_bytree&quot;</span>],</span>
+<span id="cb34-64"><a href="#cb34-64" tabindex="-1"></a>          <span class="at">gamma =</span> grid[BI, <span class="st">&quot;gamma&quot;</span>],</span>
+<span id="cb34-65"><a href="#cb34-65" tabindex="-1"></a>          <span class="at">min_child_weight =</span> grid[BI, <span class="st">&quot;min_child_weight&quot;</span>],</span>
+<span id="cb34-66"><a href="#cb34-66" tabindex="-1"></a>          <span class="at">alpha =</span> grid[BI, <span class="st">&quot;alpha&quot;</span>],</span>
+<span id="cb34-67"><a href="#cb34-67" tabindex="-1"></a>          <span class="at">lambda =</span> grid[BI, <span class="st">&quot;lambda&quot;</span>]</span>
+<span id="cb34-68"><a href="#cb34-68" tabindex="-1"></a>      )</span>
+<span id="cb34-69"><a href="#cb34-69" tabindex="-1"></a>      xgb_dm <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> md_x, <span class="at">label =</span> md_y)</span>
+<span id="cb34-70"><a href="#cb34-70" tabindex="-1"></a>      xgb_dt <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_x, <span class="at">label =</span> test_y)</span>
+<span id="cb34-71"><a href="#cb34-71" tabindex="-1"></a>      xmt <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> xgb_dm, <span class="at">nrounds =</span> grid[BI, <span class="st">&quot;nrounds&quot;</span>], <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">nthread =</span> <span class="dv">1</span>)</span>
+<span id="cb34-72"><a href="#cb34-72" tabindex="-1"></a>      </span>
+<span id="cb34-73"><a href="#cb34-73" tabindex="-1"></a>      phat_t <span class="ot">&lt;-</span> <span class="fu">predict</span>(xmt, xgb_dt)</span>
+<span id="cb34-74"><a href="#cb34-74" tabindex="-1"></a>      pred_rocr_t <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat_t, test_y)</span>
+<span id="cb34-75"><a href="#cb34-75" tabindex="-1"></a>      auc_t <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr_t, <span class="st">&quot;auc&quot;</span>)<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb34-76"><a href="#cb34-76" tabindex="-1"></a></span>
+<span id="cb34-77"><a href="#cb34-77" tabindex="-1"></a>      <span class="co"># Combine results</span></span>
+<span id="cb34-78"><a href="#cb34-78" tabindex="-1"></a>      <span class="fu">c</span>(params_best, auc[BI], auc_t, BI)</span>
+<span id="cb34-79"><a href="#cb34-79" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) {</span>
+<span id="cb34-80"><a href="#cb34-80" tabindex="-1"></a>      <span class="co"># Handle the error</span></span>
+<span id="cb34-81"><a href="#cb34-81" tabindex="-1"></a>      <span class="fu">message</span>(<span class="st">&quot;Error in iteration &quot;</span>, i, <span class="st">&quot;: &quot;</span>, e<span class="sc">$</span>message)</span>
+<span id="cb34-82"><a href="#cb34-82" tabindex="-1"></a>      <span class="fu">return</span>(<span class="cn">NA</span>) <span class="co"># Return NA or any other value you deem appropriate</span></span>
+<span id="cb34-83"><a href="#cb34-83" tabindex="-1"></a>    })</span>
+<span id="cb34-84"><a href="#cb34-84" tabindex="-1"></a>  }</span>
+<span id="cb34-85"><a href="#cb34-85" tabindex="-1"></a></span>
+<span id="cb34-86"><a href="#cb34-86" tabindex="-1"></a>  <span class="co"># Stop the cluster</span></span>
+<span id="cb34-87"><a href="#cb34-87" tabindex="-1"></a>  <span class="fu">stopCluster</span>(cl)</span>
+<span id="cb34-88"><a href="#cb34-88" tabindex="-1"></a></span>
+<span id="cb34-89"><a href="#cb34-89" tabindex="-1"></a>  <span class="co"># Convert the results matrix to a tibble</span></span>
+<span id="cb34-90"><a href="#cb34-90" tabindex="-1"></a>  rt <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(results, <span class="at">.name_repair =</span> <span class="st">&quot;universal&quot;</span>)</span>
+<span id="cb34-91"><a href="#cb34-91" tabindex="-1"></a></span>
+<span id="cb34-92"><a href="#cb34-92" tabindex="-1"></a>  <span class="co"># Assign column names</span></span>
+<span id="cb34-93"><a href="#cb34-93" tabindex="-1"></a>  <span class="fu">colnames</span>(rt) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;eta&quot;</span>, <span class="st">&quot;max_depth&quot;</span>, <span class="st">&quot;min_child_weight&quot;</span>, <span class="st">&quot;subsample&quot;</span>, <span class="st">&quot;colsample_bytree&quot;</span>, <span class="st">&quot;lambda&quot;</span>, <span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;nrounds&quot;</span>, <span class="st">&quot;AUC_val_v_runs&quot;</span>, <span class="st">&quot;AUC_Test&quot;</span>, <span class="st">&quot;Rgrid_ind&quot;</span>)</span>
+<span id="cb34-94"><a href="#cb34-94" tabindex="-1"></a></span>
+<span id="cb34-95"><a href="#cb34-95" tabindex="-1"></a>  <span class="co"># Unlist each column and return as a tibble</span></span>
+<span id="cb34-96"><a href="#cb34-96" tabindex="-1"></a>  aaa <span class="ot">&lt;-</span> rt <span class="sc">%&gt;%</span></span>
+<span id="cb34-97"><a href="#cb34-97" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb34-98"><a href="#cb34-98" tabindex="-1"></a>      <span class="at">eta =</span> <span class="fu">unlist</span>(eta),</span>
+<span id="cb34-99"><a href="#cb34-99" tabindex="-1"></a>      <span class="at">max_depth =</span> <span class="fu">unlist</span>(max_depth),</span>
+<span id="cb34-100"><a href="#cb34-100" tabindex="-1"></a>      <span class="at">min_child_weight =</span> <span class="fu">unlist</span>(min_child_weight),</span>
+<span id="cb34-101"><a href="#cb34-101" tabindex="-1"></a>      <span class="at">subsample =</span> <span class="fu">unlist</span>(subsample),</span>
+<span id="cb34-102"><a href="#cb34-102" tabindex="-1"></a>      <span class="at">colsample_bytree =</span> <span class="fu">unlist</span>(colsample_bytree),</span>
+<span id="cb34-103"><a href="#cb34-103" tabindex="-1"></a>      <span class="at">lambda =</span> <span class="fu">unlist</span>(lambda),</span>
+<span id="cb34-104"><a href="#cb34-104" tabindex="-1"></a>      <span class="at">alpha =</span> <span class="fu">unlist</span>(alpha),</span>
+<span id="cb34-105"><a href="#cb34-105" tabindex="-1"></a>      <span class="at">gamma =</span> <span class="fu">unlist</span>(gamma),</span>
+<span id="cb34-106"><a href="#cb34-106" tabindex="-1"></a>      <span class="at">nrounds =</span> <span class="fu">unlist</span>(nrounds),</span>
+<span id="cb34-107"><a href="#cb34-107" tabindex="-1"></a>      <span class="at">AUC_val_v_runs =</span> <span class="fu">unlist</span>(AUC_val_v_runs),</span>
+<span id="cb34-108"><a href="#cb34-108" tabindex="-1"></a>      <span class="at">AUC_Test =</span> <span class="fu">unlist</span>(AUC_Test),</span>
+<span id="cb34-109"><a href="#cb34-109" tabindex="-1"></a>      <span class="at">Rgrid_ind =</span> <span class="fu">unlist</span>(Rgrid_ind)</span>
+<span id="cb34-110"><a href="#cb34-110" tabindex="-1"></a>    )</span>
+<span id="cb34-111"><a href="#cb34-111" tabindex="-1"></a></span>
+<span id="cb34-112"><a href="#cb34-112" tabindex="-1"></a>  <span class="fu">return</span>(aaa)</span>
+<span id="cb34-113"><a href="#cb34-113" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="nrounds-and-eta-function" class="section level3">
+<h3>nrounds and eta function</h3>
+<p>This is gonna be a function to set eta and tune for nrounds. In this
+case i will use it at the beginning to show a idea of how fast the
+xgboost model is reaching a resonable rnounds range then again at the
+end to do a final tune for nrounds.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>opt_nrd4eta <span class="ot">&lt;-</span> <span class="cf">function</span>(xs, y, params, o , grd) {</span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="co"># Assuming xgb.train and related functions are already available (via library(xgboost))</span></span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a>  <span class="fu">library</span>(xgboost)</span>
+<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a>  <span class="fu">library</span>(ROCR)</span>
+<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a>  </span>
+<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a>  <span class="co"># Detect the number of cores</span></span>
+<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a>  numCores <span class="ot">&lt;-</span> <span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb35-8"><a href="#cb35-8" tabindex="-1"></a>  </span>
+<span id="cb35-9"><a href="#cb35-9" tabindex="-1"></a>  <span class="co"># Initialize an AUC matrix</span></span>
+<span id="cb35-10"><a href="#cb35-10" tabindex="-1"></a>  aucm <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> o, <span class="at">ncol =</span> <span class="fu">length</span>(grd))</span>
+<span id="cb35-11"><a href="#cb35-11" tabindex="-1"></a>  </span>
+<span id="cb35-12"><a href="#cb35-12" tabindex="-1"></a>  start_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb35-13"><a href="#cb35-13" tabindex="-1"></a>  </span>
+<span id="cb35-14"><a href="#cb35-14" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>o){</span>
+<span id="cb35-15"><a href="#cb35-15" tabindex="-1"></a>    <span class="co"># Creating a bootstrap sample</span></span>
+<span id="cb35-16"><a href="#cb35-16" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb35-17"><a href="#cb35-17" tabindex="-1"></a>    </span>
+<span id="cb35-18"><a href="#cb35-18" tabindex="-1"></a>    dm <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[ind, ], <span class="at">label =</span> y[ind])</span>
+<span id="cb35-19"><a href="#cb35-19" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[<span class="sc">-</span>ind, ], <span class="at">label =</span> y[<span class="sc">-</span>ind])</span>
+<span id="cb35-20"><a href="#cb35-20" tabindex="-1"></a>    </span>
+<span id="cb35-21"><a href="#cb35-21" tabindex="-1"></a>    auc <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb35-22"><a href="#cb35-22" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(grd)){</span>
+<span id="cb35-23"><a href="#cb35-23" tabindex="-1"></a>      </span>
+<span id="cb35-24"><a href="#cb35-24" tabindex="-1"></a>      <span class="co"># Training the model on the bootstrap sample</span></span>
+<span id="cb35-25"><a href="#cb35-25" tabindex="-1"></a>      bsm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params,</span>
+<span id="cb35-26"><a href="#cb35-26" tabindex="-1"></a>                       <span class="at">data =</span> dm,</span>
+<span id="cb35-27"><a href="#cb35-27" tabindex="-1"></a>                       <span class="at">nrounds =</span> grd[i],</span>
+<span id="cb35-28"><a href="#cb35-28" tabindex="-1"></a>                       <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb35-29"><a href="#cb35-29" tabindex="-1"></a>                       <span class="at">nthread =</span> numCores</span>
+<span id="cb35-30"><a href="#cb35-30" tabindex="-1"></a>                       )</span>
+<span id="cb35-31"><a href="#cb35-31" tabindex="-1"></a>      </span>
+<span id="cb35-32"><a href="#cb35-32" tabindex="-1"></a>      <span class="co"># Predict on the validation set and calculate AUC</span></span>
+<span id="cb35-33"><a href="#cb35-33" tabindex="-1"></a>      phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(bsm, dv, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb35-34"><a href="#cb35-34" tabindex="-1"></a>      </span>
+<span id="cb35-35"><a href="#cb35-35" tabindex="-1"></a>      <span class="co"># Calculating the AUC</span></span>
+<span id="cb35-36"><a href="#cb35-36" tabindex="-1"></a>      pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, y[<span class="sc">-</span>ind])</span>
+<span id="cb35-37"><a href="#cb35-37" tabindex="-1"></a>      auc_ROCR <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="at">measure =</span> <span class="st">&quot;auc&quot;</span>)</span>
+<span id="cb35-38"><a href="#cb35-38" tabindex="-1"></a>      auc[i] <span class="ot">&lt;-</span> auc_ROCR<span class="sc">@</span>y.values[[<span class="dv">1</span>]] </span>
+<span id="cb35-39"><a href="#cb35-39" tabindex="-1"></a>    }</span>
+<span id="cb35-40"><a href="#cb35-40" tabindex="-1"></a>    aucm[j, ] <span class="ot">&lt;-</span> auc</span>
+<span id="cb35-41"><a href="#cb35-41" tabindex="-1"></a>  }</span>
+<span id="cb35-42"><a href="#cb35-42" tabindex="-1"></a>  </span>
+<span id="cb35-43"><a href="#cb35-43" tabindex="-1"></a>  evalauc <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(aucm)</span>
+<span id="cb35-44"><a href="#cb35-44" tabindex="-1"></a>  </span>
+<span id="cb35-45"><a href="#cb35-45" tabindex="-1"></a>  <span class="co"># Plotting</span></span>
+<span id="cb35-46"><a href="#cb35-46" tabindex="-1"></a>  <span class="fu">plot</span>(grd, evalauc, <span class="at">type =</span> <span class="st">&quot;b&quot;</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, </span>
+<span id="cb35-47"><a href="#cb35-47" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">&quot;Number of Rounds&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;AUC&quot;</span>, </span>
+<span id="cb35-48"><a href="#cb35-48" tabindex="-1"></a>       <span class="at">main =</span> <span class="st">&quot;AUC over o rounds vs Number of Rounds in XGBoost&quot;</span>)</span>
+<span id="cb35-49"><a href="#cb35-49" tabindex="-1"></a>  </span>
+<span id="cb35-50"><a href="#cb35-50" tabindex="-1"></a>  best_nrounds <span class="ot">&lt;-</span> grd[<span class="fu">which.max</span>(evalauc)]</span>
+<span id="cb35-51"><a href="#cb35-51" tabindex="-1"></a>  max_auc <span class="ot">&lt;-</span> <span class="fu">max</span>(evalauc)</span>
+<span id="cb35-52"><a href="#cb35-52" tabindex="-1"></a>  </span>
+<span id="cb35-53"><a href="#cb35-53" tabindex="-1"></a>  end_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb35-54"><a href="#cb35-54" tabindex="-1"></a>  elapsed_time <span class="ot">&lt;-</span> end_time <span class="sc">-</span> start_time</span>
+<span id="cb35-55"><a href="#cb35-55" tabindex="-1"></a>  </span>
+<span id="cb35-56"><a href="#cb35-56" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">best_nrounds =</span> best_nrounds, <span class="at">max_auc =</span> max_auc, <span class="at">elapsed_time =</span> elapsed_time))</span>
+<span id="cb35-57"><a href="#cb35-57" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="kill-rgrid-length-function" class="section level3">
+<h3>Kill rgrid Length Function</h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a>kill_rg <span class="ot">&lt;-</span> <span class="cf">function</span>(xs, y, rgrid, fv) {</span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>  </span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>  cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(<span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a>  <span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a>  </span>
+<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a>  <span class="co"># Perform hyperparameter tuning</span></span>
+<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a>  auc <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">j =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(rgrid), <span class="at">.combine =</span> c, <span class="at">.packages =</span> <span class="fu">c</span>(<span class="st">&quot;xgboost&quot;</span>, <span class="st">&quot;ROCR&quot;</span>)) <span class="sc">%dopar%</span> {</span>
+<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a>    vauc <span class="ot">&lt;-</span> <span class="fu">numeric</span>(fv)</span>
+<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a>    </span>
+<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>fv) {</span>
+<span id="cb36-11"><a href="#cb36-11" tabindex="-1"></a>      <span class="co"># Bootstrap sampling</span></span>
+<span id="cb36-12"><a href="#cb36-12" tabindex="-1"></a>      ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb36-13"><a href="#cb36-13" tabindex="-1"></a>      unique_ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(ind)</span>
+<span id="cb36-14"><a href="#cb36-14" tabindex="-1"></a>      dtrain_x <span class="ot">&lt;-</span> xs[unique_ind, ]</span>
+<span id="cb36-15"><a href="#cb36-15" tabindex="-1"></a>      dtrain_y <span class="ot">&lt;-</span> y[unique_ind]</span>
+<span id="cb36-16"><a href="#cb36-16" tabindex="-1"></a>      test_x <span class="ot">&lt;-</span> xs[<span class="sc">-</span>unique_ind, ]</span>
+<span id="cb36-17"><a href="#cb36-17" tabindex="-1"></a>      test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>unique_ind]</span>
+<span id="cb36-18"><a href="#cb36-18" tabindex="-1"></a>      </span>
+<span id="cb36-19"><a href="#cb36-19" tabindex="-1"></a>      <span class="co"># Model training with current set of hyperparameters</span></span>
+<span id="cb36-20"><a href="#cb36-20" tabindex="-1"></a>      params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb36-21"><a href="#cb36-21" tabindex="-1"></a>        <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb36-22"><a href="#cb36-22" tabindex="-1"></a>        <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb36-23"><a href="#cb36-23" tabindex="-1"></a>        <span class="at">max_depth =</span> rgrid[j, <span class="st">&quot;max_depth&quot;</span>],</span>
+<span id="cb36-24"><a href="#cb36-24" tabindex="-1"></a>        <span class="at">eta =</span> rgrid[j, <span class="st">&quot;eta&quot;</span>],</span>
+<span id="cb36-25"><a href="#cb36-25" tabindex="-1"></a>        <span class="at">subsample =</span> rgrid[j, <span class="st">&quot;subsample&quot;</span>],</span>
+<span id="cb36-26"><a href="#cb36-26" tabindex="-1"></a>        <span class="at">colsample_bytree =</span> rgrid[j, <span class="st">&quot;colsample_bytree&quot;</span>],</span>
+<span id="cb36-27"><a href="#cb36-27" tabindex="-1"></a>        <span class="at">gamma =</span> rgrid[j, <span class="st">&quot;gamma&quot;</span>],</span>
+<span id="cb36-28"><a href="#cb36-28" tabindex="-1"></a>        <span class="at">min_child_weight =</span> rgrid[j, <span class="st">&quot;min_child_weight&quot;</span>],</span>
+<span id="cb36-29"><a href="#cb36-29" tabindex="-1"></a>        <span class="at">alpha =</span> rgrid[j, <span class="st">&quot;alpha&quot;</span>],</span>
+<span id="cb36-30"><a href="#cb36-30" tabindex="-1"></a>        <span class="at">lambda =</span> rgrid[j, <span class="st">&quot;lambda&quot;</span>]</span>
+<span id="cb36-31"><a href="#cb36-31" tabindex="-1"></a>      )</span>
+<span id="cb36-32"><a href="#cb36-32" tabindex="-1"></a>      </span>
+<span id="cb36-33"><a href="#cb36-33" tabindex="-1"></a>      xgb_train <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> dtrain_x, <span class="at">label =</span> dtrain_y)</span>
+<span id="cb36-34"><a href="#cb36-34" tabindex="-1"></a>      xm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> xgb_train, <span class="at">nrounds =</span> rgrid[j, <span class="st">&quot;nrounds&quot;</span>], <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">nthread =</span> <span class="dv">1</span>)</span>
+<span id="cb36-35"><a href="#cb36-35" tabindex="-1"></a>      </span>
+<span id="cb36-36"><a href="#cb36-36" tabindex="-1"></a>      <span class="co"># AUC calculation</span></span>
+<span id="cb36-37"><a href="#cb36-37" tabindex="-1"></a>      phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xm, <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_x))</span>
+<span id="cb36-38"><a href="#cb36-38" tabindex="-1"></a>      pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, test_y)</span>
+<span id="cb36-39"><a href="#cb36-39" tabindex="-1"></a>      vauc[i] <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="st">&quot;auc&quot;</span>)<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb36-40"><a href="#cb36-40" tabindex="-1"></a>    }</span>
+<span id="cb36-41"><a href="#cb36-41" tabindex="-1"></a>    </span>
+<span id="cb36-42"><a href="#cb36-42" tabindex="-1"></a>    <span class="fu">mean</span>(vauc)</span>
+<span id="cb36-43"><a href="#cb36-43" tabindex="-1"></a>  }</span>
+<span id="cb36-44"><a href="#cb36-44" tabindex="-1"></a>  </span>
+<span id="cb36-45"><a href="#cb36-45" tabindex="-1"></a>  <span class="co"># Stop the parallel backend</span></span>
+<span id="cb36-46"><a href="#cb36-46" tabindex="-1"></a>  <span class="fu">stopCluster</span>(cl)</span>
+<span id="cb36-47"><a href="#cb36-47" tabindex="-1"></a>  </span>
+<span id="cb36-48"><a href="#cb36-48" tabindex="-1"></a>  <span class="co"># Process AUC results to filter the top 50% performing hyperparameter sets</span></span>
+<span id="cb36-49"><a href="#cb36-49" tabindex="-1"></a>  sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(auc, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb36-50"><a href="#cb36-50" tabindex="-1"></a>  top_indices <span class="ot">&lt;-</span> sorted_indices[<span class="dv">1</span><span class="sc">:</span>(<span class="fu">length</span>(sorted_indices)<span class="sc">/</span><span class="dv">2</span>)]</span>
+<span id="cb36-51"><a href="#cb36-51" tabindex="-1"></a>  kgrid <span class="ot">&lt;-</span> rgrid[top_indices, ]</span>
+<span id="cb36-52"><a href="#cb36-52" tabindex="-1"></a>  </span>
+<span id="cb36-53"><a href="#cb36-53" tabindex="-1"></a>  <span class="co"># Return the filtered hyperparameter grid</span></span>
+<span id="cb36-54"><a href="#cb36-54" tabindex="-1"></a>  <span class="fu">return</span>(kgrid)</span>
+<span id="cb36-55"><a href="#cb36-55" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+</div>
+<div id="run-our-model" class="section level2">
+<h2>8. Run our model</h2>
+<div id="get-a-general-feel-for-nrounds-value" class="section level3">
+<h3>Get a general feel for nrounds value</h3>
+<p>This is the process we should be listening too. i will show why we
+dont use early stopping rounds with watchlist etc</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="co"># Define XGBoost parameters</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>  <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a>  <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fl">0.1</span> </span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a>)</span>
+<span id="cb37-7"><a href="#cb37-7" tabindex="-1"></a>grd <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="at">by =</span> <span class="dv">10</span>)</span>
+<span id="cb37-8"><a href="#cb37-8" tabindex="-1"></a>o <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb37-9"><a href="#cb37-9" tabindex="-1"></a>rs <span class="ot">&lt;-</span> <span class="fu">opt_nrd4eta</span>(<span class="at">xs =</span> xs, <span class="at">y =</span> y, <span class="at">params =</span> params, o, grd)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">print</span>(rs)</span></code></pre></div>
+<pre><code>## $best_nrounds
+## [1] 51
+## 
+## $max_auc
+## [1] 0.8725695
+## 
+## $elapsed_time
+## Time difference of 9.919981 mins</code></pre>
+<p>We see that nrounds peaks very very fast. if we do xgboosting
+watchlistit very fast there aswell but the
+watchlist/early_stopping_rounds has a issue i will talk about.</p>
+<p>I want to note that the internal xgboost watchlist early stopping
+rounds is very similar but not the same exactly.. it shows it its peak
+very fast</p>
+<p>We must use my method due to the fact that in mine each point of the
+graph is 100 runs so it is more reliable. However i will print out the
+xgboost internal way of of seeing because it bring up a very important
+point</p>
+<p>Now we use early stopping rounds with bootstrapping</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>               <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>               <span class="at">eta =</span> <span class="fl">0.1</span>)</span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a>max_rounds <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb40-6"><a href="#cb40-6" tabindex="-1"></a>esr <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb40-7"><a href="#cb40-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb40-8"><a href="#cb40-8" tabindex="-1"></a></span>
+<span id="cb40-9"><a href="#cb40-9" tabindex="-1"></a><span class="co"># Vector to store the best iteration for each bootstrap sample</span></span>
+<span id="cb40-10"><a href="#cb40-10" tabindex="-1"></a>bit <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb40-11"><a href="#cb40-11" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb40-12"><a href="#cb40-12" tabindex="-1"></a></span>
+<span id="cb40-13"><a href="#cb40-13" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb40-14"><a href="#cb40-14" tabindex="-1"></a>  </span>
+<span id="cb40-15"><a href="#cb40-15" tabindex="-1"></a>    <span class="co"># Creating a bootstrap sample</span></span>
+<span id="cb40-16"><a href="#cb40-16" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb40-17"><a href="#cb40-17" tabindex="-1"></a>    </span>
+<span id="cb40-18"><a href="#cb40-18" tabindex="-1"></a>    dm <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[ind, ], <span class="at">label =</span> y[ind])</span>
+<span id="cb40-19"><a href="#cb40-19" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[<span class="sc">-</span>ind, ], <span class="at">label =</span> y[<span class="sc">-</span>ind])</span>
+<span id="cb40-20"><a href="#cb40-20" tabindex="-1"></a>    </span>
+<span id="cb40-21"><a href="#cb40-21" tabindex="-1"></a>    <span class="co"># Training the model on the bootstrap sample</span></span>
+<span id="cb40-22"><a href="#cb40-22" tabindex="-1"></a>    bsm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params,</span>
+<span id="cb40-23"><a href="#cb40-23" tabindex="-1"></a>                     <span class="at">data =</span> dm,</span>
+<span id="cb40-24"><a href="#cb40-24" tabindex="-1"></a>                     <span class="at">nrounds =</span> max_rounds,</span>
+<span id="cb40-25"><a href="#cb40-25" tabindex="-1"></a>                     <span class="at">early_stopping_rounds =</span> esr, </span>
+<span id="cb40-26"><a href="#cb40-26" tabindex="-1"></a>                     <span class="at">watchlist =</span> <span class="fu">list</span>(<span class="at">train =</span> dm, <span class="at">val =</span> dv),</span>
+<span id="cb40-27"><a href="#cb40-27" tabindex="-1"></a>                     <span class="at">eval_metric =</span> <span class="st">&quot;auc&quot;</span>,</span>
+<span id="cb40-28"><a href="#cb40-28" tabindex="-1"></a>                     <span class="at">maximize =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb40-29"><a href="#cb40-29" tabindex="-1"></a>                     <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb40-30"><a href="#cb40-30" tabindex="-1"></a>                     )</span>
+<span id="cb40-31"><a href="#cb40-31" tabindex="-1"></a></span>
+<span id="cb40-32"><a href="#cb40-32" tabindex="-1"></a>    <span class="co"># Storing the best iteration</span></span>
+<span id="cb40-33"><a href="#cb40-33" tabindex="-1"></a>    bit[i] <span class="ot">&lt;-</span> bsm<span class="sc">$</span>best_iteration</span>
+<span id="cb40-34"><a href="#cb40-34" tabindex="-1"></a>    </span>
+<span id="cb40-35"><a href="#cb40-35" tabindex="-1"></a>  <span class="co"># Predict on the validation set and calculate AUC</span></span>
+<span id="cb40-36"><a href="#cb40-36" tabindex="-1"></a>  phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(bsm, dv, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb40-37"><a href="#cb40-37" tabindex="-1"></a></span>
+<span id="cb40-38"><a href="#cb40-38" tabindex="-1"></a>  <span class="co"># Calculating the AUC</span></span>
+<span id="cb40-39"><a href="#cb40-39" tabindex="-1"></a>  pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, y[<span class="sc">-</span>ind])</span>
+<span id="cb40-40"><a href="#cb40-40" tabindex="-1"></a>  auc_ROCR <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="at">measure =</span> <span class="st">&quot;auc&quot;</span>)</span>
+<span id="cb40-41"><a href="#cb40-41" tabindex="-1"></a>  auc[i] <span class="ot">&lt;-</span> auc_ROCR<span class="sc">@</span>y.values[[<span class="dv">1</span>]] </span>
+<span id="cb40-42"><a href="#cb40-42" tabindex="-1"></a>}</span>
+<span id="cb40-43"><a href="#cb40-43" tabindex="-1"></a></span>
+<span id="cb40-44"><a href="#cb40-44" tabindex="-1"></a></span>
+<span id="cb40-45"><a href="#cb40-45" tabindex="-1"></a></span>
+<span id="cb40-46"><a href="#cb40-46" tabindex="-1"></a>frequency <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">factor</span>(bit))</span>
+<span id="cb40-47"><a href="#cb40-47" tabindex="-1"></a></span>
+<span id="cb40-48"><a href="#cb40-48" tabindex="-1"></a><span class="co"># Creating a bar plot</span></span>
+<span id="cb40-49"><a href="#cb40-49" tabindex="-1"></a><span class="fu">barplot</span>(frequency, <span class="at">main =</span> <span class="st">&quot;Frequency of Best Iterations&quot;</span>, </span>
+<span id="cb40-50"><a href="#cb40-50" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">&quot;Best Iteration&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Frequency&quot;</span>)</span></code></pre></div>
 <p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
-<p>If we are finding a threshold he then need to pay attention to the
-watchlist outputs and tune nrounds accordingly. also note i am use early
-stopping rounds in my loops.</p>
+<p>Looking just at watchlist early stopping rounds someone could assume
+that the best nrounds is 1. !THIS IS NOT THE CASE!</p>
+<p>I dislike k fold cross validation as it give varying results but it
+also says that the best iterations are not the first few iterations</p>
+<p>The ranges seem to be from 40 - 200 acording the cv. but i dont trust
+that due to how varying the results are</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="co"># Set parameters</span></span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>  <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a>  <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fl">0.1</span></span>
+<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a>)</span>
+<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a>num_rounds <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a>esr <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb41-10"><a href="#cb41-10" tabindex="-1"></a></span>
+<span id="cb41-11"><a href="#cb41-11" tabindex="-1"></a><span class="co"># Create DMatrix</span></span>
+<span id="cb41-12"><a href="#cb41-12" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs, <span class="at">label =</span> y)</span>
+<span id="cb41-13"><a href="#cb41-13" tabindex="-1"></a></span>
+<span id="cb41-14"><a href="#cb41-14" tabindex="-1"></a><span class="co"># Perform cross-validation</span></span>
+<span id="cb41-15"><a href="#cb41-15" tabindex="-1"></a>cvr<span class="ot">&lt;-</span> <span class="fu">xgb.cv</span>(<span class="at">params =</span> params,</span>
+<span id="cb41-16"><a href="#cb41-16" tabindex="-1"></a>                     <span class="at">data =</span> d,</span>
+<span id="cb41-17"><a href="#cb41-17" tabindex="-1"></a>                     <span class="at">nfold =</span> <span class="dv">5</span>,</span>
+<span id="cb41-18"><a href="#cb41-18" tabindex="-1"></a>                     <span class="at">nrounds =</span> num_rounds,</span>
+<span id="cb41-19"><a href="#cb41-19" tabindex="-1"></a>                     <span class="at">early_stopping_rounds =</span> esr,</span>
+<span id="cb41-20"><a href="#cb41-20" tabindex="-1"></a>                     <span class="at">maximize =</span> <span class="cn">TRUE</span>,  </span>
+<span id="cb41-21"><a href="#cb41-21" tabindex="-1"></a>                     <span class="at">verbose =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb41-22"><a href="#cb41-22" tabindex="-1"></a>                     <span class="at">showsd =</span> T,</span>
+<span id="cb41-23"><a href="#cb41-23" tabindex="-1"></a>                     <span class="at">stratified =</span> T,</span>
+<span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a>                     <span class="at">print.every.n =</span> <span class="dv">10</span>,</span>
+<span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a>                     <span class="at">eval_metric =</span> <span class="st">&quot;auc&quot;</span></span>
+<span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a>                     )</span></code></pre></div>
+<pre><code>## [1]  train-auc:0.909962+0.006517 test-auc:0.845877+0.025714 
+## Multiple eval metrics are present. Will use test_auc for early stopping.
+## Will train until test_auc hasn&#39;t improved in 50 rounds.
+## 
+## [11] train-auc:0.950883+0.006521 test-auc:0.874383+0.017379 
+## [21] train-auc:0.966295+0.002099 test-auc:0.877515+0.021052 
+## [31] train-auc:0.977021+0.001509 test-auc:0.881517+0.021449 
+## [41] train-auc:0.983679+0.001834 test-auc:0.882195+0.017792 
+## [51] train-auc:0.988883+0.001002 test-auc:0.883648+0.017732 
+## [61] train-auc:0.992312+0.000644 test-auc:0.882573+0.017433 
+## [71] train-auc:0.994635+0.000570 test-auc:0.881298+0.016903 
+## [81] train-auc:0.996111+0.000383 test-auc:0.879925+0.016569 
+## [91] train-auc:0.997126+0.000500 test-auc:0.879638+0.016417 
+## Stopping. Best iteration:
+## [48] train-auc:0.987573+0.001188 test-auc:0.884327+0.016963</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="co"># Get the average AUC across all folds</span></span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a>avg_auc <span class="ot">&lt;-</span> <span class="fu">max</span>(cvr<span class="sc">$</span>evaluation_log<span class="sc">$</span>test_auc_mean)</span>
+<span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Average AUC across all folds: &quot;</span>, avg_auc, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## Average AUC across all folds:  0.8843271</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a>cvr<span class="sc">$</span>best_iteration</span></code></pre></div>
+<pre><code>## [1] 48</code></pre>
+<p>I want to draw huge attention that this way is actually different
+then our way. This way takes the SINGLE best iteration from 1000 loops.
+it is not averaged out like in ours…</p>
+<p>For example iteration 1 or 2 may have extreme volatility in auc (this
+is what we observe in this data).. because of this high volatility it
+will win its run more often then iteration 30. HOWEVER just because it
+wins its iteration more doesnt mean it is better. Iteration 30 will on
+average be better then iteration 2.</p>
+<p>We can’t just say this tho we have to test it….</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>  <span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a>  <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fl">0.1</span> </span>
+<span id="cb47-5"><a href="#cb47-5" tabindex="-1"></a>)</span>
+<span id="cb47-6"><a href="#cb47-6" tabindex="-1"></a></span>
+<span id="cb47-7"><a href="#cb47-7" tabindex="-1"></a><span class="co"># Define the range of grid values for number of rounds</span></span>
+<span id="cb47-8"><a href="#cb47-8" tabindex="-1"></a>grd <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">100</span>, <span class="dv">200</span>)</span>
+<span id="cb47-9"><a href="#cb47-9" tabindex="-1"></a></span>
+<span id="cb47-10"><a href="#cb47-10" tabindex="-1"></a><span class="co"># Set the number of iterations</span></span>
+<span id="cb47-11"><a href="#cb47-11" tabindex="-1"></a>o <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb47-12"><a href="#cb47-12" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" tabindex="-1"></a><span class="co"># Call the function to optimize the number of rounds</span></span>
+<span id="cb47-14"><a href="#cb47-14" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">opt_nrd4eta</span>(xs, y, params, o, grd)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>While i dont want to beat a dead horse into the ground i will do one
+last test so show that the lower values (1-10) are not to be tuned
+on.</p>
+<p>This will set eta to 0.1 as the internal xgboost best_iteration would
+say is the best. we run it 100 times and look at the auc and how low it
+is.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a>               <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb48-3"><a href="#cb48-3" tabindex="-1"></a>               <span class="at">eta =</span> <span class="fl">0.1</span>)</span>
+<span id="cb48-4"><a href="#cb48-4" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">250</span></span>
+<span id="cb48-6"><a href="#cb48-6" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb48-8"><a href="#cb48-8" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb48-9"><a href="#cb48-9" tabindex="-1"></a>  </span>
+<span id="cb48-10"><a href="#cb48-10" tabindex="-1"></a>    <span class="co"># Creating a bootstrap sample</span></span>
+<span id="cb48-11"><a href="#cb48-11" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb48-12"><a href="#cb48-12" tabindex="-1"></a>    </span>
+<span id="cb48-13"><a href="#cb48-13" tabindex="-1"></a>    dm <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[ind, ], <span class="at">label =</span> y[ind])</span>
+<span id="cb48-14"><a href="#cb48-14" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[<span class="sc">-</span>ind, ], <span class="at">label =</span> y[<span class="sc">-</span>ind])</span>
+<span id="cb48-15"><a href="#cb48-15" tabindex="-1"></a>    </span>
+<span id="cb48-16"><a href="#cb48-16" tabindex="-1"></a>    <span class="co"># Training the model on the bootstrap sample</span></span>
+<span id="cb48-17"><a href="#cb48-17" tabindex="-1"></a>    bsm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params,</span>
+<span id="cb48-18"><a href="#cb48-18" tabindex="-1"></a>                     <span class="at">data =</span> dm,</span>
+<span id="cb48-19"><a href="#cb48-19" tabindex="-1"></a>                     <span class="at">nrounds =</span> <span class="dv">1</span></span>
+<span id="cb48-20"><a href="#cb48-20" tabindex="-1"></a>                     )</span>
+<span id="cb48-21"><a href="#cb48-21" tabindex="-1"></a></span>
+<span id="cb48-22"><a href="#cb48-22" tabindex="-1"></a>    </span>
+<span id="cb48-23"><a href="#cb48-23" tabindex="-1"></a>  phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(bsm, dv, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb48-24"><a href="#cb48-24" tabindex="-1"></a></span>
+<span id="cb48-25"><a href="#cb48-25" tabindex="-1"></a>  pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, y[<span class="sc">-</span>ind])</span>
+<span id="cb48-26"><a href="#cb48-26" tabindex="-1"></a>  auc_ROCR <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="at">measure =</span> <span class="st">&quot;auc&quot;</span>)</span>
+<span id="cb48-27"><a href="#cb48-27" tabindex="-1"></a>  auc[i] <span class="ot">&lt;-</span> auc_ROCR<span class="sc">@</span>y.values[[<span class="dv">1</span>]] </span>
+<span id="cb48-28"><a href="#cb48-28" tabindex="-1"></a>  </span>
+<span id="cb48-29"><a href="#cb48-29" tabindex="-1"></a>}</span>
+<span id="cb48-30"><a href="#cb48-30" tabindex="-1"></a></span>
+<span id="cb48-31"><a href="#cb48-31" tabindex="-1"></a><span class="co"># plot auc and 95% CI of the runs</span></span>
+<span id="cb48-32"><a href="#cb48-32" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
+<span id="cb48-33"><a href="#cb48-33" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb48-34"><a href="#cb48-34" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">-</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span>
+<span id="cb48-35"><a href="#cb48-35" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-20-1.png" width="672" />
+This supports exactly what we were saying. These low nrounds have a
+lower auc and higher variation when properly run</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.01872219</code></pre>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.8556219</code></pre>
+<p>Show nrounds 50 has better auc and lower sd</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
+<span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a>               <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
+<span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a>               <span class="at">eta =</span> <span class="fl">0.1</span>)</span>
+<span id="cb53-4"><a href="#cb53-4" tabindex="-1"></a></span>
+<span id="cb53-5"><a href="#cb53-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">250</span></span>
+<span id="cb53-6"><a href="#cb53-6" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb53-8"><a href="#cb53-8" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb53-9"><a href="#cb53-9" tabindex="-1"></a>  </span>
+<span id="cb53-10"><a href="#cb53-10" tabindex="-1"></a>    <span class="co"># Creating a bootstrap sample</span></span>
+<span id="cb53-11"><a href="#cb53-11" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb53-12"><a href="#cb53-12" tabindex="-1"></a>    </span>
+<span id="cb53-13"><a href="#cb53-13" tabindex="-1"></a>    dm <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[ind, ], <span class="at">label =</span> y[ind])</span>
+<span id="cb53-14"><a href="#cb53-14" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> xs[<span class="sc">-</span>ind, ], <span class="at">label =</span> y[<span class="sc">-</span>ind])</span>
+<span id="cb53-15"><a href="#cb53-15" tabindex="-1"></a>    </span>
+<span id="cb53-16"><a href="#cb53-16" tabindex="-1"></a>    <span class="co"># Training the model on the bootstrap sample</span></span>
+<span id="cb53-17"><a href="#cb53-17" tabindex="-1"></a>    bsm <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params,</span>
+<span id="cb53-18"><a href="#cb53-18" tabindex="-1"></a>                     <span class="at">data =</span> dm,</span>
+<span id="cb53-19"><a href="#cb53-19" tabindex="-1"></a>                     <span class="at">nrounds =</span> <span class="dv">50</span></span>
+<span id="cb53-20"><a href="#cb53-20" tabindex="-1"></a>                     )</span>
+<span id="cb53-21"><a href="#cb53-21" tabindex="-1"></a></span>
+<span id="cb53-22"><a href="#cb53-22" tabindex="-1"></a>    </span>
+<span id="cb53-23"><a href="#cb53-23" tabindex="-1"></a>  phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(bsm, dv, <span class="at">type =</span> <span class="st">&quot;prob&quot;</span>)</span>
+<span id="cb53-24"><a href="#cb53-24" tabindex="-1"></a></span>
+<span id="cb53-25"><a href="#cb53-25" tabindex="-1"></a>  pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, y[<span class="sc">-</span>ind])</span>
+<span id="cb53-26"><a href="#cb53-26" tabindex="-1"></a>  auc_ROCR <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_rocr, <span class="at">measure =</span> <span class="st">&quot;auc&quot;</span>)</span>
+<span id="cb53-27"><a href="#cb53-27" tabindex="-1"></a>  auc[i] <span class="ot">&lt;-</span> auc_ROCR<span class="sc">@</span>y.values[[<span class="dv">1</span>]] </span>
+<span id="cb53-28"><a href="#cb53-28" tabindex="-1"></a>  </span>
+<span id="cb53-29"><a href="#cb53-29" tabindex="-1"></a>}</span>
+<span id="cb53-30"><a href="#cb53-30" tabindex="-1"></a></span>
+<span id="cb53-31"><a href="#cb53-31" tabindex="-1"></a><span class="co"># plot auc and 95% CI of the runs</span></span>
+<span id="cb53-32"><a href="#cb53-32" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
+<span id="cb53-33"><a href="#cb53-33" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb53-34"><a href="#cb53-34" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">-</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span>
+<span id="cb53-35"><a href="#cb53-35" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.01784609</code></pre>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.8746359</code></pre>
+</div>
+<div id="run-the-model" class="section level3">
+<h3>Run the model</h3>
+<p>Set how many times our n runs is by setting a number to multiple by
+ncores - 1</p>
+<p>my machine has 20 cores so it is these numbers times 19</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" tabindex="-1"></a>r1rm <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb58-2"><a href="#cb58-2" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">100</span></span></code></pre></div>
+</div>
+<div id="define-rgrid-from-grid" class="section level3">
+<h3>define rgrid from grid</h3>
+<p>Our grid is gonna be very small cause i dont want to run a million
+sets of hyperparameters</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb59-2"><a href="#cb59-2" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="at">by =</span> <span class="dv">0</span>), </span>
+<span id="cb59-3"><a href="#cb59-3" tabindex="-1"></a>  <span class="at">max_depth =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">18</span>, <span class="at">by =</span> <span class="dv">4</span>),</span>
+<span id="cb59-4"><a href="#cb59-4" tabindex="-1"></a>  <span class="at">min_child_weight =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-5"><a href="#cb59-5" tabindex="-1"></a>  <span class="at">subsample =</span> <span class="fu">seq</span>(<span class="fl">0.8</span>, <span class="fl">0.8</span>, <span class="at">by =</span> <span class="dv">0</span>), </span>
+<span id="cb59-6"><a href="#cb59-6" tabindex="-1"></a>  <span class="at">colsample_bytree =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">0</span>),</span>
+<span id="cb59-7"><a href="#cb59-7" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-8"><a href="#cb59-8" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-9"><a href="#cb59-9" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-10"><a href="#cb59-10" tabindex="-1"></a>  <span class="at">nrounds =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">125</span>, <span class="dv">150</span>) </span>
+<span id="cb59-11"><a href="#cb59-11" tabindex="-1"></a>)</span></code></pre></div>
+<p>This creates a random grid</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" tabindex="-1"></a>conf_lev <span class="ot">&lt;-</span> .<span class="dv">95</span></span>
+<span id="cb60-2"><a href="#cb60-2" tabindex="-1"></a>num_max <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="co"># Define number around the maximum</span></span>
+<span id="cb60-3"><a href="#cb60-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>conf_lev)<span class="sc">/</span><span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>num_max<span class="sc">/</span><span class="fu">nrow</span>(grid))</span>
+<span id="cb60-4"><a href="#cb60-4" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(grid), <span class="fu">nrow</span>(grid)<span class="sc">*</span>(n<span class="sc">/</span><span class="fu">nrow</span>(grid)), <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb60-5"><a href="#cb60-5" tabindex="-1"></a>rgrid <span class="ot">&lt;-</span> grid[ind, ]</span></code></pre></div>
+</div>
+<div id="killing-off-75-of-rgrid" class="section level3">
+<h3>Killing off 75% of rgrid</h3>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" tabindex="-1"></a>kgrid <span class="ot">&lt;-</span> <span class="fu">kill_rg</span>(xs, y, rgrid, <span class="at">fv =</span> <span class="dv">10</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" tabindex="-1"></a>k2grid <span class="ot">&lt;-</span> <span class="fu">kill_rg</span>(xs, y, <span class="at">rgrid =</span> kgrid, <span class="at">fv =</span> <span class="dv">30</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" tabindex="-1"></a>k3grid <span class="ot">&lt;-</span> <span class="fu">kill_rg</span>(xs, y, <span class="at">rgrid =</span> k2grid, <span class="at">fv =</span> <span class="dv">50</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" tabindex="-1"></a>k4grid <span class="ot">&lt;-</span> <span class="fu">kill_rg</span>(xs, y, <span class="at">rgrid =</span> k3grid, <span class="at">fv =</span> <span class="dv">50</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" tabindex="-1"></a>rgrid <span class="ot">&lt;-</span> k4grid</span></code></pre></div>
+</div>
+<div id="xgboost-first-fun" class="section level3">
+<h3>Xgboost First Fun</h3>
+<p>define our inputs</p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> (<span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> r1rm</span>
+<span id="cb66-2"><a href="#cb66-2" tabindex="-1"></a>v <span class="ot">&lt;-</span> v</span>
+<span id="cb66-3"><a href="#cb66-3" tabindex="-1"></a>grid <span class="ot">&lt;-</span> rgrid</span>
+<span id="cb66-4"><a href="#cb66-4" tabindex="-1"></a>y <span class="ot">&lt;-</span> y</span>
+<span id="cb66-5"><a href="#cb66-5" tabindex="-1"></a>xs <span class="ot">&lt;-</span> xs</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" tabindex="-1"></a>  start_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb67-2"><a href="#cb67-2" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="#cb67-3" tabindex="-1"></a>r1 <span class="ot">&lt;-</span> <span class="fu">run_xgb</span>(xs, y, grid, n, v)</span></code></pre></div>
+<pre><code>## New names:
+## • `` -&gt; `...10`
+## • `` -&gt; `...11`
+## • `` -&gt; `...12`</code></pre>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" tabindex="-1"></a>  <span class="co"># Calculate elapsed time</span></span>
+<span id="cb69-2"><a href="#cb69-2" tabindex="-1"></a>  end_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb69-3"><a href="#cb69-3" tabindex="-1"></a>  elapsed_time <span class="ot">&lt;-</span> end_time <span class="sc">-</span> start_time</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" tabindex="-1"></a><span class="fu">head</span>(r1)</span></code></pre></div>
+<pre><code>## # A tibble: 6 × 12
+##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
+##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1   0.1        18                1       0.8                1      5     2     0
+## 2   0.1        18                1       0.8                1      5     0     0
+## 3   0.1        14                1       0.8                1      4     2     0
+## 4   0.1        10                1       0.8                1      2     2     0
+## 5   0.1        10                1       0.8                1      5     2     0
+## 6   0.1        14                1       0.8                1      4     1     0
+## # ℹ 4 more variables: nrounds &lt;dbl&gt;, AUC_val_v_runs &lt;dbl&gt;, AUC_Test &lt;dbl&gt;,
+## #   Rgrid_ind &lt;int&gt;</code></pre>
+</div>
+</div>
+<div id="selecting-the-best-hyperparam-set" class="section level2">
+<h2>9. Selecting the best hyperparam set</h2>
+<p>This just sets up our hyperparameters so see their frequencies
+etc.</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" tabindex="-1"></a><span class="co"># Calculating the frequency of each hyperparameter set </span></span>
+<span id="cb72-2"><a href="#cb72-2" tabindex="-1"></a>freqr <span class="ot">&lt;-</span> r1 <span class="sc">%&gt;%</span></span>
+<span id="cb72-3"><a href="#cb72-3" tabindex="-1"></a>  <span class="fu">group_by</span>(eta, max_depth, min_child_weight, subsample, colsample_bytree, lambda, alpha, gamma, nrounds) <span class="sc">%&gt;%</span></span>
+<span id="cb72-4"><a href="#cb72-4" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Frequency =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb72-5"><a href="#cb72-5" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;eta&#39;, &#39;max_depth&#39;, &#39;min_child_weight&#39;,
+## &#39;subsample&#39;, &#39;colsample_bytree&#39;, &#39;lambda&#39;, &#39;alpha&#39;, &#39;gamma&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" tabindex="-1"></a><span class="co"># Calculating the average AUC_Test for each unique set of hyperparameters</span></span>
+<span id="cb74-2"><a href="#cb74-2" tabindex="-1"></a>avg_r1 <span class="ot">&lt;-</span> r1 <span class="sc">%&gt;%</span></span>
+<span id="cb74-3"><a href="#cb74-3" tabindex="-1"></a>  <span class="fu">group_by</span>(eta, max_depth, min_child_weight, subsample, colsample_bytree, lambda, alpha, gamma, nrounds) <span class="sc">%&gt;%</span></span>
+<span id="cb74-4"><a href="#cb74-4" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Avg_AUC_Test =</span> <span class="fu">mean</span>(AUC_Test, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb74-5"><a href="#cb74-5" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;eta&#39;, &#39;max_depth&#39;, &#39;min_child_weight&#39;,
+## &#39;subsample&#39;, &#39;colsample_bytree&#39;, &#39;lambda&#39;, &#39;alpha&#39;, &#39;gamma&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" tabindex="-1"></a><span class="co"># Merging the frequency data with the averaged AUC_Test scores</span></span>
+<span id="cb76-2"><a href="#cb76-2" tabindex="-1"></a>mr <span class="ot">&lt;-</span> <span class="fu">left_join</span>(avg_r1, freqr, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;eta&quot;</span>, <span class="st">&quot;max_depth&quot;</span>, <span class="st">&quot;min_child_weight&quot;</span>, <span class="st">&quot;subsample&quot;</span>, <span class="st">&quot;colsample_bytree&quot;</span>, <span class="st">&quot;lambda&quot;</span>, <span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;nrounds&quot;</span>))</span></code></pre></div>
+<p>Take the best test score that has a frequency of at least th</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" tabindex="-1"></a>th <span class="ot">&lt;-</span> <span class="fu">max</span>(mr<span class="sc">$</span>Frequency)<span class="sc">/</span><span class="fl">1.25</span></span>
+<span id="cb77-2"><a href="#cb77-2" tabindex="-1"></a>filtered_m_r3 <span class="ot">&lt;-</span> mr <span class="sc">%&gt;%</span> </span>
+<span id="cb77-3"><a href="#cb77-3" tabindex="-1"></a>  <span class="fu">filter</span>(Frequency <span class="sc">&gt;=</span> th)</span>
+<span id="cb77-4"><a href="#cb77-4" tabindex="-1"></a>bp <span class="ot">&lt;-</span> filtered_m_r3 <span class="sc">%&gt;%</span> </span>
+<span id="cb77-5"><a href="#cb77-5" tabindex="-1"></a>  <span class="fu">filter</span>(Avg_AUC_Test <span class="sc">==</span> <span class="fu">max</span>(filtered_m_r3<span class="sc">$</span>Avg_AUC_Test))</span>
+<span id="cb77-6"><a href="#cb77-6" tabindex="-1"></a>bp</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 11
+##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
+##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1   0.1        18                1       0.8                1      3     2     0
+## # ℹ 3 more variables: nrounds &lt;dbl&gt;, Avg_AUC_Test &lt;dbl&gt;, Frequency &lt;int&gt;</code></pre>
+</div>
+<div id="final-presentaion-of-auc" class="section level2">
+<h2>10. Final Presentaion of AUC</h2>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" tabindex="-1"></a>hp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb79-2"><a href="#cb79-2" tabindex="-1"></a>    <span class="at">eta =</span> bp[[<span class="st">&quot;eta&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-3"><a href="#cb79-3" tabindex="-1"></a>    <span class="at">max_depth =</span> bp[[<span class="st">&quot;max_depth&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-4"><a href="#cb79-4" tabindex="-1"></a>    <span class="at">min_child_weight =</span> bp[[<span class="st">&quot;min_child_weight&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-5"><a href="#cb79-5" tabindex="-1"></a>    <span class="at">subsample =</span> bp[[<span class="st">&quot;subsample&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-6"><a href="#cb79-6" tabindex="-1"></a>    <span class="at">colsample_bytree =</span> bp[[<span class="st">&quot;colsample_bytree&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-7"><a href="#cb79-7" tabindex="-1"></a>    <span class="at">lambda =</span> bp[[<span class="st">&quot;lambda&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-8"><a href="#cb79-8" tabindex="-1"></a>    <span class="at">alpha =</span> bp[[<span class="st">&quot;alpha&quot;</span>]][<span class="dv">1</span>],</span>
+<span id="cb79-9"><a href="#cb79-9" tabindex="-1"></a>    <span class="at">gamma =</span> bp[[<span class="st">&quot;gamma&quot;</span>]][<span class="dv">1</span>]</span>
+<span id="cb79-10"><a href="#cb79-10" tabindex="-1"></a>)</span>
+<span id="cb79-11"><a href="#cb79-11" tabindex="-1"></a></span>
+<span id="cb79-12"><a href="#cb79-12" tabindex="-1"></a><span class="co"># Set up parallel backend to use multiple cores</span></span>
+<span id="cb79-13"><a href="#cb79-13" tabindex="-1"></a><span class="fu">registerDoParallel</span>(<span class="at">cores =</span> <span class="fu">detectCores</span>())</span>
+<span id="cb79-14"><a href="#cb79-14" tabindex="-1"></a></span>
+<span id="cb79-15"><a href="#cb79-15" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb79-16"><a href="#cb79-16" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">numeric</span>(r)</span>
+<span id="cb79-17"><a href="#cb79-17" tabindex="-1"></a></span>
+<span id="cb79-18"><a href="#cb79-18" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>r, <span class="at">.combine =</span> c, <span class="at">.packages =</span> <span class="fu">c</span>(<span class="st">&quot;xgboost&quot;</span>, <span class="st">&quot;ROCR&quot;</span>), </span>
+<span id="cb79-19"><a href="#cb79-19" tabindex="-1"></a>        <span class="at">.export =</span> <span class="fu">c</span>(<span class="st">&quot;xs&quot;</span>, <span class="st">&quot;y&quot;</span>, <span class="st">&quot;hp&quot;</span>, <span class="st">&quot;bp&quot;</span>)) <span class="sc">%dopar%</span> {</span>
+<span id="cb79-20"><a href="#cb79-20" tabindex="-1"></a>          </span>
+<span id="cb79-21"><a href="#cb79-21" tabindex="-1"></a>    <span class="co"># Bootstrap sampling</span></span>
+<span id="cb79-22"><a href="#cb79-22" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="fu">nrow</span>(xs)<span class="sc">*</span><span class="fl">1.5</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb79-23"><a href="#cb79-23" tabindex="-1"></a>    train_xs <span class="ot">&lt;-</span> xs[ind, ]</span>
+<span id="cb79-24"><a href="#cb79-24" tabindex="-1"></a>    test_xs <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
+<span id="cb79-25"><a href="#cb79-25" tabindex="-1"></a>    train_y <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb79-26"><a href="#cb79-26" tabindex="-1"></a>    test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
+<span id="cb79-27"><a href="#cb79-27" tabindex="-1"></a></span>
+<span id="cb79-28"><a href="#cb79-28" tabindex="-1"></a>    <span class="co"># Create DMatrix for XGBoost</span></span>
+<span id="cb79-29"><a href="#cb79-29" tabindex="-1"></a>    dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_xs, <span class="at">label =</span> train_y)</span>
+<span id="cb79-30"><a href="#cb79-30" tabindex="-1"></a>    dtest <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_xs, <span class="at">label =</span> test_y)</span>
+<span id="cb79-31"><a href="#cb79-31" tabindex="-1"></a>    </span>
+<span id="cb79-32"><a href="#cb79-32" tabindex="-1"></a>    <span class="co"># Train XGBoost model</span></span>
+<span id="cb79-33"><a href="#cb79-33" tabindex="-1"></a>    xgbmdl <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> hp, <span class="at">data =</span> dtrain, <span class="at">nrounds =</span> bp[[<span class="st">&quot;nrounds&quot;</span>]][<span class="dv">1</span>])</span>
+<span id="cb79-34"><a href="#cb79-34" tabindex="-1"></a></span>
+<span id="cb79-35"><a href="#cb79-35" tabindex="-1"></a>    <span class="co"># Prediction</span></span>
+<span id="cb79-36"><a href="#cb79-36" tabindex="-1"></a>    phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgbmdl, dtest)</span>
+<span id="cb79-37"><a href="#cb79-37" tabindex="-1"></a>    </span>
+<span id="cb79-38"><a href="#cb79-38" tabindex="-1"></a>    <span class="co"># Calculate AUC</span></span>
+<span id="cb79-39"><a href="#cb79-39" tabindex="-1"></a>    pred_roc <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, test_y)</span>
+<span id="cb79-40"><a href="#cb79-40" tabindex="-1"></a>    auc_value <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred_roc, <span class="st">&quot;auc&quot;</span>)<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb79-41"><a href="#cb79-41" tabindex="-1"></a>    auc_value</span>
+<span id="cb79-42"><a href="#cb79-42" tabindex="-1"></a>}</span>
+<span id="cb79-43"><a href="#cb79-43" tabindex="-1"></a></span>
+<span id="cb79-44"><a href="#cb79-44" tabindex="-1"></a><span class="co"># Stop the parallel backend</span></span>
+<span id="cb79-45"><a href="#cb79-45" tabindex="-1"></a><span class="fu">stopImplicitCluster</span>()</span>
+<span id="cb79-46"><a href="#cb79-46" tabindex="-1"></a></span>
+<span id="cb79-47"><a href="#cb79-47" tabindex="-1"></a><span class="co"># auc now contains the AUC scores</span></span>
+<span id="cb79-48"><a href="#cb79-48" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
+<pre><code>## [1] 0.879965</code></pre>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" tabindex="-1"></a><span class="co"># plot auc and 95% CI of the runs</span></span>
+<span id="cb81-2"><a href="#cb81-2" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
+<span id="cb81-3"><a href="#cb81-3" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb81-4"><a href="#cb81-4" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">-</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span>
+<span id="cb81-5"><a href="#cb81-5" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p>Overall the results dont seem amazing compared to random forest. I
+would point reduced run amount for especialy running r1. This would’ve
+let us get a better final auc. also keep in mind our grid was crazy
+small like under 3000 rows. I think with a better grid we can definitly
+improve. I also dont know how i feel about the method i used to reduce
+grid size. Im going to look more into methodology for selecting final
+set of hyperparameter aswell.</p>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># Number of bootstrap iterations</span></span>
+<span id="cb82-2"><a href="#cb82-2" tabindex="-1"></a>best_thresholds <span class="ot">&lt;-</span> <span class="fu">numeric</span>(r) <span class="co"># To store the best threshold per iteration</span></span>
+<span id="cb82-3"><a href="#cb82-3" tabindex="-1"></a>j_stats <span class="ot">&lt;-</span> <span class="fu">numeric</span>(r) <span class="co"># To store the max J statistic per iteration</span></span>
+<span id="cb82-4"><a href="#cb82-4" tabindex="-1"></a></span>
+<span id="cb82-5"><a href="#cb82-5" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>r) {</span>
+<span id="cb82-6"><a href="#cb82-6" tabindex="-1"></a>    <span class="co"># Bootstrap sampling</span></span>
+<span id="cb82-7"><a href="#cb82-7" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="at">size =</span> <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb82-8"><a href="#cb82-8" tabindex="-1"></a>    train_xs <span class="ot">&lt;-</span> xs[ind, ]</span>
+<span id="cb82-9"><a href="#cb82-9" tabindex="-1"></a>    test_xs <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
+<span id="cb82-10"><a href="#cb82-10" tabindex="-1"></a>    train_y <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb82-11"><a href="#cb82-11" tabindex="-1"></a>    test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
+<span id="cb82-12"><a href="#cb82-12" tabindex="-1"></a>    </span>
+<span id="cb82-13"><a href="#cb82-13" tabindex="-1"></a>    <span class="co"># Create DMatrix objects</span></span>
+<span id="cb82-14"><a href="#cb82-14" tabindex="-1"></a>    dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_xs, <span class="at">label =</span> train_y)</span>
+<span id="cb82-15"><a href="#cb82-15" tabindex="-1"></a>    dtest <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_xs, <span class="at">label =</span> test_y)</span>
+<span id="cb82-16"><a href="#cb82-16" tabindex="-1"></a>    </span>
+<span id="cb82-17"><a href="#cb82-17" tabindex="-1"></a>    <span class="co"># Train the model</span></span>
+<span id="cb82-18"><a href="#cb82-18" tabindex="-1"></a>    xgbmdl <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> hp, <span class="at">data =</span> dtrain, <span class="at">nrounds =</span> bp[[<span class="st">&quot;nrounds&quot;</span>]][<span class="dv">1</span>])</span>
+<span id="cb82-19"><a href="#cb82-19" tabindex="-1"></a>    </span>
+<span id="cb82-20"><a href="#cb82-20" tabindex="-1"></a>    <span class="co"># Predictions</span></span>
+<span id="cb82-21"><a href="#cb82-21" tabindex="-1"></a>    phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgbmdl, dtest)</span>
+<span id="cb82-22"><a href="#cb82-22" tabindex="-1"></a>    </span>
+<span id="cb82-23"><a href="#cb82-23" tabindex="-1"></a>    <span class="co"># ROCR predictions object</span></span>
+<span id="cb82-24"><a href="#cb82-24" tabindex="-1"></a>    pred <span class="ot">&lt;-</span> <span class="fu">prediction</span>(phat, test_y)</span>
+<span id="cb82-25"><a href="#cb82-25" tabindex="-1"></a>    </span>
+<span id="cb82-26"><a href="#cb82-26" tabindex="-1"></a>    <span class="co"># Calculate performance measures</span></span>
+<span id="cb82-27"><a href="#cb82-27" tabindex="-1"></a>    perf <span class="ot">&lt;-</span> <span class="fu">performance</span>(pred, <span class="at">measure =</span> <span class="st">&quot;sens&quot;</span>, <span class="at">x.measure =</span> <span class="st">&quot;spec&quot;</span>)</span>
+<span id="cb82-28"><a href="#cb82-28" tabindex="-1"></a>    sensitivity <span class="ot">&lt;-</span> <span class="fu">slot</span>(perf, <span class="st">&quot;y.values&quot;</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb82-29"><a href="#cb82-29" tabindex="-1"></a>    specificity <span class="ot">&lt;-</span> <span class="fu">slot</span>(perf, <span class="st">&quot;x.values&quot;</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb82-30"><a href="#cb82-30" tabindex="-1"></a>    thresholds <span class="ot">&lt;-</span> <span class="fu">slot</span>(perf, <span class="st">&quot;alpha.values&quot;</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb82-31"><a href="#cb82-31" tabindex="-1"></a>    j_stat <span class="ot">&lt;-</span> sensitivity <span class="sc">+</span> specificity <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb82-32"><a href="#cb82-32" tabindex="-1"></a>    </span>
+<span id="cb82-33"><a href="#cb82-33" tabindex="-1"></a>    <span class="co"># Find the best threshold (maximizing J statistic)</span></span>
+<span id="cb82-34"><a href="#cb82-34" tabindex="-1"></a>    best_idx <span class="ot">&lt;-</span> <span class="fu">which.max</span>(j_stat)</span>
+<span id="cb82-35"><a href="#cb82-35" tabindex="-1"></a>    best_thresholds[i] <span class="ot">&lt;-</span> thresholds[best_idx]</span>
+<span id="cb82-36"><a href="#cb82-36" tabindex="-1"></a>    j_stats[i] <span class="ot">&lt;-</span> j_stat[best_idx]</span>
+<span id="cb82-37"><a href="#cb82-37" tabindex="-1"></a>}</span>
+<span id="cb82-38"><a href="#cb82-38" tabindex="-1"></a></span>
+<span id="cb82-39"><a href="#cb82-39" tabindex="-1"></a><span class="co"># Calculate and print the average of the best thresholds</span></span>
+<span id="cb82-40"><a href="#cb82-40" tabindex="-1"></a>avg_best_threshold <span class="ot">&lt;-</span> <span class="fu">mean</span>(best_thresholds)</span>
+<span id="cb82-41"><a href="#cb82-41" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Average Best Threshold:&quot;</span>, avg_best_threshold, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## Average Best Threshold: 0.4390873</code></pre>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" tabindex="-1"></a><span class="co"># Plot the distribution of max J statistics for each iteration</span></span>
+<span id="cb84-2"><a href="#cb84-2" tabindex="-1"></a><span class="fu">plot</span>(j_stats, <span class="at">type =</span> <span class="st">&quot;h&quot;</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Iteration&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Max J Statistic&quot;</span>,</span>
+<span id="cb84-3"><a href="#cb84-3" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Distribution of Max J Statistics Across Bootstrap Iterations&quot;</span>)</span>
+<span id="cb84-4"><a href="#cb84-4" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">mean</span>(j_stats), <span class="at">col =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>) <span class="co"># Mean J Stat line</span></span></code></pre></div>
+<p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<p>Focus in future.</p>
+<p>is the way i cut down rgrid okay how to select best hypers and i
+properly tuning for jstat for titanic should i use another^ throw more
+computing power at it :)</p>
+<p>JMJ</p>
 </div>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -799,6 +1490,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
