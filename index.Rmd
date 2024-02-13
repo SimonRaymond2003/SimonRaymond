@@ -77,4 +77,12 @@ These features are not properly worked with as they are not as important. A bett
 
 ### notes to myself
 
-Make a seperate page for all my data. itll be cleaner
+Make a seperate page for all my data. it'll be cleaner
+
+Finish speeds.
+
+put jstat on xgb2.
+
+Fix the typos in xgboost at the end
+
+shun all start up messages etc
