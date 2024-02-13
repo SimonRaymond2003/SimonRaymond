@@ -12,7 +12,7 @@
 
 <meta name="date" content="2024-01-28" />
 
-<title>Machine Learning Codes and Process</title>
+<title>Speeds</title>
 
 <script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -343,62 +343,13 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Machine Learning Codes and Process</h1>
+<h1 class="title toc-ignore">Speeds</h1>
 <h4 class="date">2024-01-28</h4>
 
 </div>
 
 
-<div id="simon-p.-raymond" class="section level3">
-<h3>Simon P. Raymond</h3>
-<p>For all my codes, I will try to follow similar patterns.</p>
-<p>I use bootstrapping in all of my codes instead of k-fold-cv. While it
-creates more work as many functions have k-fold-cv built-in, I feel it
-is worth it as it is a more robust way of getting validation samples and
-allows me to make as many as I want.</p>
-<p>For the initial train/val/test process, the train/val will be
-bootstrapped a number of times to ensure I’m getting a relatively
-representative display of what each hyperparameter actually is. Then, I
-will test the best average hyperparameter (based on some metric) on a
-set-aside test set. This entire process will repeat N times.</p>
-<p>XGB2 follows a more accurate realistic way of tuning which tests each
-hyperparmeter a large amount of times.</p>
-</div>
-<div id="terminology-that-i-use" class="section level3">
-<h3>Terminology that I use</h3>
-<ul>
-<li><p>Train: This is the data that I “build” the model on. It is the
-data that the model “sees.”</p></li>
-<li><p>Val: This is validation data that the model predicts upon that
-gives us results in terms of tuning hyperparameters.</p></li>
-<li><p>Test: This is the set-aside data that we evaluate our model
-upon.</p></li>
-<li><p>md/model_data: This is the combination of train and val data that
-we build our model on during the final “test” stage of the
-algorithm.</p></li>
-<li><p>AUC: Area under Curve.</p></li>
-<li><p>y: I will always make the predicted value y.</p></li>
-</ul>
-<p>Titanic: For these examples, I am using the classic ML Titanic data
-to predict survivors.</p>
-</div>
-<div id="content" class="section level3">
-<h3>Content</h3>
-<p>Adaboost</p>
-<p>it uses properly worked with titanic features, No parrallel
-processing it is just to give a super broad look.</p>
-<p>Xgboost</p>
-<p>I have two files.. One does more analysis and shows the data prep a
-bit better. The other appliies a more efficient algorithm. it uses
-properly worked with titanic features</p>
-<p>Nnet</p>
-<p>it uses properly worked with titanic features, No parrallel
-processing it is just to give a super broad look.</p>
-<p>LM RF and Cart</p>
-<p>These features are not properly worked with as they are not as
-important. A better RF model is found in the importance of features
-section in xgboost. They do use Parrallel proccessing</p>
-</div>
+<p>I am working on this currently.</p>
 
 
 

@@ -426,6 +426,12 @@ div.tocify {
 <li>
   <a href="Titanic_LM_CART_RF.html">Titanic_LM_CART_and_RF</a>
 </li>
+<li>
+  <a href="XGB_2.html">XGB_2</a>
+</li>
+<li>
+  <a href="Speeds.html">Speeds</a>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -658,9 +664,9 @@ predictors</p>
 <span id="cb24-28"><a href="#cb24-28" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
 <p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.8796318</code></pre>
+<pre><code>## [1] 0.8827207</code></pre>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.01747429</code></pre>
+<pre><code>## [1] 0.01743931</code></pre>
 <p>Rank the most important predictors</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>col_means <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(imp_df)</span>
 <span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>mean_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Feature =</span> <span class="fu">names</span>(col_means), <span class="at">Mean =</span> col_means)</span>
@@ -731,12 +737,12 @@ potentially correlating with class and survival rate.</p>
 use bootstrapping as such.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="co"># the length is just to show the % split that is being put into the index</span></span>
 <span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">sample</span>(<span class="dv">100</span>, <span class="dv">100</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
-<pre><code>## [1] 62</code></pre>
+<pre><code>## [1] 64</code></pre>
 <p>however for my Test set i am increasing the number of times a sample
 a row index so that my model data is larger. i want a range closer the
 20-25 % because my data is so small.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">sample</span>(<span class="dv">100</span>, <span class="dv">133</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span></code></pre></div>
-<pre><code>## [1] 71</code></pre>
+<pre><code>## [1] 72</code></pre>
 </div>
 <div id="main-function" class="section level3">
 <h3>Main function</h3>
@@ -998,10 +1004,10 @@ dont use early stopping rounds with watchlist etc</p>
 ## [1] 51
 ## 
 ## $max_auc
-## [1] 0.8725695
+## [1] 0.8759794
 ## 
 ## $elapsed_time
-## Time difference of 9.919981 mins</code></pre>
+## Time difference of 9.372208 mins</code></pre>
 <p>We see that nrounds peaks very very fast. if we do xgboosting
 watchlistit very fast there aswell but the
 watchlist/early_stopping_rounds has a issue i will talk about.</p>
@@ -1096,27 +1102,33 @@ that due to how varying the results are</p>
 <span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a>                     <span class="at">print.every.n =</span> <span class="dv">10</span>,</span>
 <span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a>                     <span class="at">eval_metric =</span> <span class="st">&quot;auc&quot;</span></span>
 <span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a>                     )</span></code></pre></div>
-<pre><code>## [1]  train-auc:0.909962+0.006517 test-auc:0.845877+0.025714 
+<pre><code>## [1]  train-auc:0.921349+0.004362 test-auc:0.844245+0.035097 
 ## Multiple eval metrics are present. Will use test_auc for early stopping.
 ## Will train until test_auc hasn&#39;t improved in 50 rounds.
 ## 
-## [11] train-auc:0.950883+0.006521 test-auc:0.874383+0.017379 
-## [21] train-auc:0.966295+0.002099 test-auc:0.877515+0.021052 
-## [31] train-auc:0.977021+0.001509 test-auc:0.881517+0.021449 
-## [41] train-auc:0.983679+0.001834 test-auc:0.882195+0.017792 
-## [51] train-auc:0.988883+0.001002 test-auc:0.883648+0.017732 
-## [61] train-auc:0.992312+0.000644 test-auc:0.882573+0.017433 
-## [71] train-auc:0.994635+0.000570 test-auc:0.881298+0.016903 
-## [81] train-auc:0.996111+0.000383 test-auc:0.879925+0.016569 
-## [91] train-auc:0.997126+0.000500 test-auc:0.879638+0.016417 
+## [11] train-auc:0.954518+0.003430 test-auc:0.854861+0.034061 
+## [21] train-auc:0.968170+0.003234 test-auc:0.863168+0.033069 
+## [31] train-auc:0.976737+0.003394 test-auc:0.862107+0.032769 
+## [41] train-auc:0.983843+0.002620 test-auc:0.866472+0.030160 
+## [51] train-auc:0.988508+0.002362 test-auc:0.867027+0.028720 
+## [61] train-auc:0.991628+0.002236 test-auc:0.866146+0.028350 
+## [71] train-auc:0.994282+0.001581 test-auc:0.866691+0.028614 
+## [81] train-auc:0.996147+0.000994 test-auc:0.868827+0.028481 
+## [91] train-auc:0.997212+0.000742 test-auc:0.871077+0.029721 
+## [101]    train-auc:0.998114+0.000484 test-auc:0.870445+0.031059 
+## [111]    train-auc:0.998664+0.000275 test-auc:0.870180+0.033322 
+## [121]    train-auc:0.999128+0.000190 test-auc:0.869982+0.033054 
+## [131]    train-auc:0.999444+0.000110 test-auc:0.869467+0.033455 
+## [141]    train-auc:0.999668+0.000074 test-auc:0.868994+0.032882 
+## [151]    train-auc:0.999796+0.000070 test-auc:0.867371+0.032747 
 ## Stopping. Best iteration:
-## [48] train-auc:0.987573+0.001188 test-auc:0.884327+0.016963</code></pre>
+## [103]    train-auc:0.998239+0.000474 test-auc:0.871078+0.031726</code></pre>
 <div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="co"># Get the average AUC across all folds</span></span>
 <span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a>avg_auc <span class="ot">&lt;-</span> <span class="fu">max</span>(cvr<span class="sc">$</span>evaluation_log<span class="sc">$</span>test_auc_mean)</span>
 <span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Average AUC across all folds: &quot;</span>, avg_auc, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Average AUC across all folds:  0.8843271</code></pre>
+<pre><code>## Average AUC across all folds:  0.8710777</code></pre>
 <div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a>cvr<span class="sc">$</span>best_iteration</span></code></pre></div>
-<pre><code>## [1] 48</code></pre>
+<pre><code>## [1] 103</code></pre>
 <p>I want to draw huge attention that this way is actually different
 then our way. This way takes the SINGLE best iteration from 1000 loops.
 it is not averaged out like in ours…</p>
@@ -1186,9 +1198,9 @@ is.</p>
 This supports exactly what we were saying. These low nrounds have a
 lower auc and higher variation when properly run</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.01872219</code></pre>
+<pre><code>## [1] 0.01865485</code></pre>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.8556219</code></pre>
+<pre><code>## [1] 0.8570712</code></pre>
 <p>Show nrounds 50 has better auc and lower sd</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">booster =</span> <span class="st">&quot;gbtree&quot;</span>,</span>
 <span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a>               <span class="at">objective =</span> <span class="st">&quot;binary:logistic&quot;</span>,</span>
@@ -1227,16 +1239,16 @@ lower auc and higher variation when properly run</p>
 <span id="cb53-35"><a href="#cb53-35" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc)<span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span><span class="fu">sd</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>, <span class="at">lwd =</span> <span class="dv">3</span>)</span></code></pre></div>
 <p><img src="Titanic_XGBoosting_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 <div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.01784609</code></pre>
+<pre><code>## [1] 0.01777896</code></pre>
 <div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.8746359</code></pre>
+<pre><code>## [1] 0.8753196</code></pre>
 </div>
 <div id="run-the-model" class="section level3">
 <h3>Run the model</h3>
 <p>Set how many times our n runs is by setting a number to multiple by
 ncores - 1</p>
 <p>my machine has 20 cores so it is these numbers times 19</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" tabindex="-1"></a>r1rm <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" tabindex="-1"></a>r1rm <span class="ot">&lt;-</span> <span class="dv">10</span></span>
 <span id="cb58-2"><a href="#cb58-2" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">100</span></span></code></pre></div>
 </div>
 <div id="define-rgrid-from-grid" class="section level3">
@@ -1245,13 +1257,13 @@ ncores - 1</p>
 sets of hyperparameters</p>
 <div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
 <span id="cb59-2"><a href="#cb59-2" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="at">by =</span> <span class="dv">0</span>), </span>
-<span id="cb59-3"><a href="#cb59-3" tabindex="-1"></a>  <span class="at">max_depth =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">18</span>, <span class="at">by =</span> <span class="dv">4</span>),</span>
+<span id="cb59-3"><a href="#cb59-3" tabindex="-1"></a>  <span class="at">max_depth =</span> <span class="fu">seq</span>(<span class="dv">14</span>, <span class="dv">18</span>, <span class="at">by =</span> <span class="dv">4</span>),</span>
 <span id="cb59-4"><a href="#cb59-4" tabindex="-1"></a>  <span class="at">min_child_weight =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
 <span id="cb59-5"><a href="#cb59-5" tabindex="-1"></a>  <span class="at">subsample =</span> <span class="fu">seq</span>(<span class="fl">0.8</span>, <span class="fl">0.8</span>, <span class="at">by =</span> <span class="dv">0</span>), </span>
 <span id="cb59-6"><a href="#cb59-6" tabindex="-1"></a>  <span class="at">colsample_bytree =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">0</span>),</span>
-<span id="cb59-7"><a href="#cb59-7" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
-<span id="cb59-8"><a href="#cb59-8" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
-<span id="cb59-9"><a href="#cb59-9" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-7"><a href="#cb59-7" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">seq</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-8"><a href="#cb59-8" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">3</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb59-9"><a href="#cb59-9" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">2.5</span>), </span>
 <span id="cb59-10"><a href="#cb59-10" tabindex="-1"></a>  <span class="at">nrounds =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">125</span>, <span class="dv">150</span>) </span>
 <span id="cb59-11"><a href="#cb59-11" tabindex="-1"></a>)</span></code></pre></div>
 <p>This creates a random grid</p>
@@ -1291,12 +1303,12 @@ sets of hyperparameters</p>
 <pre><code>## # A tibble: 6 × 12
 ##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
 ##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1   0.1        18                1       0.8                1      5     2     0
-## 2   0.1        18                1       0.8                1      5     0     0
-## 3   0.1        14                1       0.8                1      4     2     0
-## 4   0.1        10                1       0.8                1      2     2     0
-## 5   0.1        10                1       0.8                1      5     2     0
-## 6   0.1        14                1       0.8                1      4     1     0
+## 1   0.1        14                1       0.8                1      4     3     0
+## 2   0.1        14                1       0.8                1      4     0     0
+## 3   0.1        14                1       0.8                1      3     3     0
+## 4   0.1        18                1       0.8                1      4     2     0
+## 5   0.1        14                1       0.8                1      5     1     0
+## 6   0.1        14                1       0.8                1      3     3     0
 ## # ℹ 4 more variables: nrounds &lt;dbl&gt;, AUC_val_v_runs &lt;dbl&gt;, AUC_Test &lt;dbl&gt;,
 ## #   Rgrid_ind &lt;int&gt;</code></pre>
 </div>
@@ -1333,7 +1345,7 @@ etc.</p>
 <pre><code>## # A tibble: 1 × 11
 ##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
 ##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1   0.1        18                1       0.8                1      3     2     0
+## 1   0.1        14                1       0.8                1      3     3     0
 ## # ℹ 3 more variables: nrounds &lt;dbl&gt;, Avg_AUC_Test &lt;dbl&gt;, Frequency &lt;int&gt;</code></pre>
 </div>
 <div id="final-presentaion-of-auc" class="section level2">
@@ -1386,7 +1398,7 @@ etc.</p>
 <span id="cb79-46"><a href="#cb79-46" tabindex="-1"></a></span>
 <span id="cb79-47"><a href="#cb79-47" tabindex="-1"></a><span class="co"># auc now contains the AUC scores</span></span>
 <span id="cb79-48"><a href="#cb79-48" tabindex="-1"></a><span class="fu">mean</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.879965</code></pre>
+<pre><code>## [1] 0.8821188</code></pre>
 <div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" tabindex="-1"></a><span class="co"># plot auc and 95% CI of the runs</span></span>
 <span id="cb81-2"><a href="#cb81-2" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
 <span id="cb81-3"><a href="#cb81-3" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
@@ -1441,7 +1453,7 @@ set of hyperparameter aswell.</p>
 <span id="cb82-39"><a href="#cb82-39" tabindex="-1"></a><span class="co"># Calculate and print the average of the best thresholds</span></span>
 <span id="cb82-40"><a href="#cb82-40" tabindex="-1"></a>avg_best_threshold <span class="ot">&lt;-</span> <span class="fu">mean</span>(best_thresholds)</span>
 <span id="cb82-41"><a href="#cb82-41" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Average Best Threshold:&quot;</span>, avg_best_threshold, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Average Best Threshold: 0.4390873</code></pre>
+<pre><code>## Average Best Threshold: 0.4313489</code></pre>
 <div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" tabindex="-1"></a><span class="co"># Plot the distribution of max J statistics for each iteration</span></span>
 <span id="cb84-2"><a href="#cb84-2" tabindex="-1"></a><span class="fu">plot</span>(j_stats, <span class="at">type =</span> <span class="st">&quot;h&quot;</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Iteration&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Max J Statistic&quot;</span>,</span>
 <span id="cb84-3"><a href="#cb84-3" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Distribution of Max J Statistics Across Bootstrap Iterations&quot;</span>)</span>
