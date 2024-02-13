@@ -1,5 +1,12 @@
 ---
 title: "Titanic Nnet"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
 navbar:
   title: "Simon Raymond"
   left:
@@ -15,122 +22,138 @@ navbar:
       href: Titanic_Nnet.html
     - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
-      name: SimonRaymond 
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
 
 # Data Prep
 
 Download the Data
 ```{r}
+library(randomForest)
 library(readr)
+library(dplyr)
+library(ROCR)
+library(nnet)
 train_titanic <- read_csv("train.csv")
 ```
 
-The columns i will use are y, Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the tiltes for names 
-```{r}
-library(dplyr)
+I will use the same data that i use in my other algorithms
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+    library(plotly)
+    library(readr)
+    library(dplyr)
+    library(forcats)
+    library(stringr)
+    library(tidyr)
+    library(DataExplorer)
+    library(randomForest)
+    library(xgboost)
+    library(shiny)
+    library(GGally)
+    library(ROCR)
+    library(ggplot2)
+    library(doParallel)
+})
 
-selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
-data <- train_titanic[selected_cols]
-data <- data %>% rename(y = Survived)
-```
+# Loading datasets
+data <- read_csv("train.csv")
 
-convert the characters to factors. convert our y variable to numeric for XGBoosting
-```{r}
-char_cols <- sapply(data, is.character)
-data[, char_cols] <- lapply(data[, char_cols], factor)
-data$y <- as.numeric(data$y)
-```
+# Feature Engineering
+data <- data %>%
+  mutate(
+    Ticket_Length = nchar(Ticket),
+    Ticket_Is_Number = !grepl("\\D", Ticket),
+    Title = str_extract(Name, "\\b[[:alpha:]]+\\."),
+    Name_Length = nchar(Name),
+    Cabin_Letter = ifelse(!is.na(Cabin), substr(Cabin, 1, 1), NA_character_),
+    Has_Cabin = !is.na(Cabin)
+  ) %>%
+  add_count(Title) %>%
+  mutate(
+    Title = ifelse(n < 10, 'Other', as.character(Title)),
+    Cabin_Letter = ifelse(Cabin_Letter %in% c('T', 'G'), 'Missing', as.character(Cabin_Letter)),
+    Cabin_Letter = factor(Cabin_Letter)
+  )
 
-we have NAs we need to deal with
-```{r}
-colSums(is.na(data))
-```
+# Data Cleaning
+data <- data %>%
+  select(-Name, -Ticket, -Cabin) %>%
+  mutate(across(where(is.character), as.factor)) %>%
+  mutate(across(where(is.factor) & !one_of("Age", "Embarked"), fct_explicit_na, na_level = "Missing")) %>%
+  mutate(Embarked = replace(Embarked, is.na(Embarked), "S")) %>%
+  mutate(Pclass = as.factor(Pclass))
 
-Firsts i am going to predict the NAs for Age with a simple Random Forest model.
-```{r}
-na_index <- which(is.na(data$Age))#index the missing NAs
-na_data <- data[na_index, ]#create a data frame of the NAs indexed
-c_data <-data[-na_index, ]#take the complete data to c_data
-na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that only has NAs in it
-```
+# Imputing missing values in 'Age'
+data_with_age <- data %>% filter(!is.na(Age))
+data_missing_age <- data %>% filter(is.na(Age))
 
- i will use na.roughfix() for the two missing Embarked values
-```{r}
-library(randomForest)
-c_data <- na.roughfix(c_data)# there are two NAs in embarked
-na_data <-  na.roughfix(na_data)
-```
+model_age <- randomForest(Age ~ . - PassengerId, data = data_with_age, na.action = na.omit)
+predicted_ages <- predict(model_age, newdata = data_missing_age)
+data_missing_age$Age <- predicted_ages
 
-Predict our NAs
-```{r}
-library(randomForest)
+data <- rbind(data_with_age, data_missing_age) %>% arrange(PassengerId)
 
-model_rf <- randomForest(Age ~.,
-                         ntree = 1200, 
-                         data = c_data) 
+# Final preparation for the data
+sdata <- data %>%
+  mutate(across(where(is.numeric) & !all_of(c("Survived", "PassengerId")), scale)) %>%
+  as_tibble()
 
-pred_na <- predict(model_rf, na_data)
-```
+# Prepare data for XGBOOST
+sdata$Survived <- as.numeric(factor(sdata$Survived, labels = c(0, 1))) - 1
 
-This binds our predictions to the corrosponding index number for each missing NA in "data"
-```{r}
-na_n_ind <- cbind(pred_na, na_index)
-
-data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
-```
-
-finally just use na.roughfix() for the two embarked values since it is so little
-```{r}
-library(randomForest)
-
-data <- na.roughfix(data)
-colSums(is.na(data))
+data <- sdata[, -1]
 ```
 
 ```{r}
 str(data)
+anyNA(data)
 ```
-
 
 # nnet
 
 This sets a wide grid
+
 ```{r}
 size <- c(2:6)
-decay <- c(seq(0.01, 0.25, 0.01))
-maxit <- c(seq(100, 1500, 50))
+decay <- c(seq(0.01, 0.25, 0.05))
+maxit <- c(seq(100, 1500, 100))
 grid <- expand.grid(size, decay, maxit)
 ```
 
+```{r, warning = FALSE}
+conf_lev <- .95
+num_max <- 5 # Define number around the maximum
+n <- log(1-conf_lev)/log(1-num_max/nrow(grid))
+ind <- sample(nrow(grid), nrow(grid)*(n/nrow(grid)), replace = FALSE)
+rgrid <- grid[ind, ]
+```
+
+
+
+
+This is not parrallel proccesed. Im just showing a 3 loop algorithm at its most basic level. in practive i would emply the xgb2 methodology
+
 ```{r}
-library(ROCR)
-library(nnet)
 
-n <- 50 # number of times we run the algorithm
-s <- 500 # how many samples we take for the random grid/ to be validated
-v <- 10 # how many times we run each hyper parameter then take the mean of. for validation
 
-AUC <- c()
-
+n <- 10 # number of times we run the algorithm
+v <- 50 # how many times we run each hyper parameter then take the mean of. for validation
 
 # store out best values via validation scores
 opt <- matrix(0, nrow = n, ncol = 5)
 colnames(opt) <- c("size", "decay", "maxit", "AUC_val", "AUC_TEST")
 
-
-
 for (j in 1:n){
   
   # put aside data for final test. creat md and test
-ind1 <- sample(nrow(data), nrow(data)*0.8, replace = FALSE)
-md <- data[ind1, ]
-test <- data[-ind1, ]
-
-# make our random grid
-ind <- sample(nrow(grid), s , replace = FALSE)
-rgrid <- grid[ind, ]
-
+ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
+md <- data[ind, ]
+test <- data[-ind, ]
 
 auc_runs <- c() 
   
@@ -143,8 +166,9 @@ for (i in 1:nrow(rgrid)){
  idx <- unique(sample(nrow(md), nrow(md), replace = TRUE))
   train <- md[idx,]
   val <- md[-idx, ]
+  
 # model on the train data
-  model <- nnet(y ~ ., 
+  model <- nnet(Survived ~ ., 
                 data = train, 
                 trace = FALSE, 
                 act.fct = "logistic",
@@ -156,7 +180,7 @@ for (i in 1:nrow(rgrid)){
   phat <- predict(model, val)
   
   # find the auc
-  pred_rocr <- prediction(phat, val$y)
+  pred_rocr <- prediction(phat, val$Survived)
   auc_ROCR <- performance(pred_rocr, measure = "auc")
   auc_tuning[p] <- auc_ROCR@y.values[[1]]
 }
@@ -174,7 +198,7 @@ best_params <- rgrid[BI, ]
   opt[j, 4] <- best_AUC
  
 # model with the md data
-   model <- nnet(y ~ ., 
+   model <- nnet(Survived ~ ., 
                 data = md, 
                 trace = FALSE,
                 act.fct = "logistic",
@@ -185,131 +209,28 @@ best_params <- rgrid[BI, ]
   # predict the set aside test set
     phat_t <- predict(model, test)
   # get the test auc
-  pred_rocr <- prediction(phat_t, test$y)
+  pred_rocr <- prediction(phat_t, test$Survived)
 auc_ROCR <- performance(pred_rocr, measure = "auc")
 auc_test <- auc_ROCR@y.values[[1]]
   
 
   # store the test auc
 opt[j, 5] <- auc_test
-
-
-
-  
 }
 
 
 ```
 
-index the best x percent of test aucs and there hyperparameters. we will store them in win
+Then we can go and choose a best hyperparameter set from here
 ```{r}
-th <- quantile(opt[ ,5], probs = 0.50)
-ind_opt <- which(opt[ ,5] >= th)
-
-win <- opt[ind_opt, ]
-win
+head(opt)
 ```
 
-This code is using bootstrapping and runs the best hyperparamters that we picked before. it tests the selected hyper parameters n times. since we are not tuning in it we can use all of the data in it.
-```{r}
-library(nnet)
-library(ROCR)
 
-n <- 400
-w <- nrow(win)
-
-#collums are hyper param set
-bs_results <- matrix(0, nrow = n, ncol = w)
-
-
-
-for (i in 1:n) {
-  for (j in 1:w){
-    auc <- c()
-  #cat("loops: ", i, j, "\r")
-  
-  # Initial Split
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  md <- data[ind, ]
-  test <- data[-ind, ]
-
-  # build the model on model data
- model <- nnet(y ~ ., 
-                data = md, 
-                trace = FALSE, 
-                act.fct = "logistic",
-                size = win[j, 1], 
-                decay = win[j, 2], 
-                maxit = win[j, 3]
-                )
-  
-  # Predicting on the test set
-  phat <- predict(model, test)
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test$y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc <- auc_ROCR@y.values[[1]]
-  
-  # matrix with n rows and w collums. each collum is a hyper parameter
- bs_results[i, j] <- auc 
-}
-}
-```
-
-This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the correlating hyperparameters into bh.
-```{r}
-bh_ind <- which.max(colMeans(bs_results))
-bh <- win[bh_ind, ]
-mean(bs_results[,bh_ind])
-cm <- as.vector(colMeans(bs_results))
-win <- cbind(win, av_ovr_n_runs=cm)
-bh
-```
-
-This is the final run. it uses bootstrapping and runs n times. This is mostly to do a final proof and present the auc 
-```{r, warning=FALSE}
-library(gbm)
-library(ROCR)
-
-n <- 1000
-
-
-
-
-
- auc <- c()
-for(i in 1:n){
-    #cat("loops: ", i, "\r")
-  
-# bootstrapping 
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  md <- data[ind, ]
-  test <- data[-ind, ]
-#
-   model <- nnet(y ~ ., 
-                data = md, 
-                trace = FALSE, 
-                act.fct = "logistic",
-                size = bh[1], 
-                decay = bh[2], 
-                maxit = bh[3]
-                )
-  
-  # Predicting on the test set
-  phat <- predict(model, test)
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test$y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc[i] <- auc_ROCR@y.values[[1]]
-  }
-
-mean(auc)
-sd(auc)
-```
 
 ```{r, warning=FALSE}
+
+auc <- opt[,5]
 
 # plot auc and 95% CI
 plot(auc, col="red")

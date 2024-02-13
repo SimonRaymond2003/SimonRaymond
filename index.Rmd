@@ -1,5 +1,32 @@
 ---
 title: "Machine Learning Codes and Process"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
+navbar:
+  title: "Simon Raymond"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "Titanic XGBoosting"
+      href: Titanic_XGBoosting.html
+    - text: "Titanic Adaboost"
+      href: Titanic_Adaboost.html
+    - text: "Titanic Nnet"
+      href: Titanic_Nnet.html
+    - text: "Titanic_LM_CART_and_RF"
+      href: Titanic_LM_CART_RF.html
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
 
 ### Simon P. Raymond
@@ -8,19 +35,9 @@ For all my codes, I will try to follow similar patterns.
 
 I use bootstrapping in all of my codes instead of k-fold-cv. While it creates more work as many functions have k-fold-cv built-in, I feel it is worth it as it is a more robust way of getting validation samples and allows me to make as many as I want.
 
-For the initial train/val/test process, the train/val will be bootstrapped a number of times to ensure I'm getting a relatively representative display of what each hyperparameter actually is. Then, I will test the best average hyperparameter (based on some metric) on a set-aside test set. This entire process will repeat N times.
+For the initial train/val/test process, the train/val will be bootstrapped a number of times to ensure I'm getting a relatively representative display of what each hyperparameter actually is. Then, I will test the best average hyperparameter (based on some metric) on a set-aside test set. This entire process will repeat N times. 
 
-Then I take the top 50% (or another percentage) of the test scores and run the hyperparameters n times on the entire data. I have my code set in a way that they are each tested/validated on the same samples. I then take the mean of these scores and use them to select my best model.
-
-Then I do a final run of the winning model to present a graph of the metric used and its run metric CI (using SD not SE as I want to display the range of AUC depending on data splits).
-
-Also, I am evaluating models on metrics such as AUC, RMSPE, or J-statistic. While I don't currently have an analysis of actual predictions from something like a Kaggle competition (meaning finding thresholds based on the confusion table), I do intend to do that in the future, but I would need to improve my feature engineering.
-
-I want it noted that I acknowledge the weakness in the fact that the set-aside test set is very random and may not be incredibly reliable due to the fact that we can't K-F-CV or B/s it since it must remain separate. An idea I have had to combat this is to maybe split the test set into K pieces (similar to K-F-CV) but keep the model data (train and val sets/data) the same. I then could test each of the splintered test sets and take the mean of the test results for each selected hyperparameter set. I'm not sure if this will have a different effect, but I will look into it and test it.
-
-That being said, if I run an algorithm, say 1000 times, and I am finding there are patterns in the hyperparameters selected (as there should be), then this problem starts to disappear as there would have been many similar hyperparameters that all were tested on set-aside test sets.
-
-Also some codes have a reduced grid search or number of rounds due to having the run many algorithms at once. Obviously we could increase these inputs and may recieve better results.
+XGB2 follows a more accurate realistic way of tuning which tests each hyperparmeter a large amount of times.
 
 ### Terminology that I use
 
@@ -37,3 +54,27 @@ Also some codes have a reduced grid search or number of rounds due to having the
 * y: I will always make the predicted value y.
 
 Titanic: For these examples, I am using the classic ML Titanic data to predict survivors.
+
+### Content
+
+Adaboost
+
+it uses properly worked with titanic features, No parrallel processing it is just to give a super broad look.
+
+Xgboost
+
+I have two files.. One does more analysis and shows the data prep a bit better. The other appliies a more efficient algorithm.
+it uses properly worked with titanic features
+
+Nnet
+
+it uses properly worked with titanic features, No parrallel processing it is just to give a super broad look.
+
+
+LM RF and Cart
+
+These features are not properly worked with as they are not as important. A better RF model is found in the importance of features section in xgboost. They do use Parrallel proccessing
+
+### notes to myself
+
+Make a seperate page for all my data. itll be cleaner

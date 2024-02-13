@@ -1,5 +1,12 @@
 ---
 title: "Titanic Adaboost"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
 navbar:
   title: "Simon Raymond"
   left:
@@ -15,107 +22,120 @@ navbar:
       href: Titanic_Nnet.html
     - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
-      name: SimonRaymond 
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
 
-
-This wil be my titanic Adaboost page
-
+# Data Prep
 
 Download the Data
-```{r, warning=FALSE}
-library(readr)
-
-train_titanic <- read_csv("train.csv")
-
-```
-
-the columns i will use are y(Survived), Pclass, Sex, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
 ```{r}
-library(dplyr)
-
-selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
-data <- train_titanic[selected_cols]
-data <- data %>% rename(y = Survived)
+library(readr)
+library(gbm)
+train_titanic <- read_csv("train.csv")
 ```
 
-convert the characters to factors.
-```{r, warning=FALSE}
-char_cols <- sapply(data, is.character)
-data[, char_cols] <- lapply(data[, char_cols], factor)
-data$y <- as.numeric(data$y)
+I will use the same data that i use in my other algorithms
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+    library(plotly)
+    library(readr)
+    library(dplyr)
+    library(forcats)
+    library(stringr)
+    library(tidyr)
+    library(DataExplorer)
+    library(randomForest)
+    library(xgboost)
+    library(shiny)
+    library(GGally)
+    library(ROCR)
+    library(ggplot2)
+    library(doParallel)
+})
 
+# Loading datasets
+data <- read_csv("train.csv")
+
+# Feature Engineering
+data <- data %>%
+  mutate(
+    Ticket_Length = nchar(Ticket),
+    Ticket_Is_Number = !grepl("\\D", Ticket),
+    Title = str_extract(Name, "\\b[[:alpha:]]+\\."),
+    Name_Length = nchar(Name),
+    Cabin_Letter = ifelse(!is.na(Cabin), substr(Cabin, 1, 1), NA_character_),
+    Has_Cabin = !is.na(Cabin)
+  ) %>%
+  add_count(Title) %>%
+  mutate(
+    Title = ifelse(n < 10, 'Other', as.character(Title)),
+    Cabin_Letter = ifelse(Cabin_Letter %in% c('T', 'G'), 'Missing', as.character(Cabin_Letter)),
+    Cabin_Letter = factor(Cabin_Letter)
+  )
+
+# Data Cleaning
+data <- data %>%
+  select(-Name, -Ticket, -Cabin) %>%
+  mutate(across(where(is.character), as.factor)) %>%
+  mutate(across(where(is.factor) & !one_of("Age", "Embarked"), fct_explicit_na, na_level = "Missing")) %>%
+  mutate(Embarked = replace(Embarked, is.na(Embarked), "S")) %>%
+  mutate(Pclass = as.factor(Pclass))
+
+# Imputing missing values in 'Age'
+data_with_age <- data %>% filter(!is.na(Age))
+data_missing_age <- data %>% filter(is.na(Age))
+
+model_age <- randomForest(Age ~ . - PassengerId, data = data_with_age, na.action = na.omit)
+predicted_ages <- predict(model_age, newdata = data_missing_age)
+data_missing_age$Age <- predicted_ages
+
+data <- rbind(data_with_age, data_missing_age) %>% arrange(PassengerId)
+
+# Final preparation for the data
+sdata <- data %>%
+  mutate(across(where(is.numeric) & !all_of(c("Survived", "PassengerId")), scale)) %>%
+  as_tibble()
+
+# Prepare data for XGBOOST
+sdata$Survived <- as.numeric(factor(sdata$Survived, labels = c(0, 1))) - 1
+
+data <- sdata[, -1]
+
+data <- data %>%
+  mutate(
+    Ticket_Is_Number = as.factor(Ticket_Is_Number),
+    Has_Cabin = as.factor(Has_Cabin)
+  )
+
+colnames(data)[1] <- c("y")
 ```
 
-we have NAs we need to deal with
-```{r, warning=FALSE}
-colSums(is.na(data))
-```
-
-First i am going to predict the NAs for Age with a simple Random Forest model.
-```{r, warning=FALSE}
-na_index <- which(is.na(data$Age))#index the missing NAs
-na_data <- data[na_index, ]#create a data frame of the NAs indexed
-c_data <-data[-na_index, ]#take the complete data to c_data
-na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that only has NAs in it
-```
-
- i will use na.roughfix() for the two missing Embarked values
-```{r, warning=FALSE}
-library(randomForest)
-c_data <- na.roughfix(c_data)# there are two NAs in embarked
-na_data <-  na.roughfix(na_data)
-```
-
-Predict our NAs
-```{r, warning=FALSE}
-library(randomForest)
-
-model_rf <- randomForest(Age ~.,
-                         ntree = 1200, 
-                         data = c_data) 
-
-pred_na <- predict(model_rf, na_data)
-```
-
-This binds our predictions to the corresponding index number for each missing NA in "data"
-```{r, warning=FALSE}
-na_n_ind <- cbind(pred_na, na_index)
-
-data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
-```
-
-finally just use na.roughfix() for the two embarked values since it is so little
-```{r, warning=FALSE}
-library(randomForest)
-
-data <- na.roughfix(data)
-colSums(is.na(data))
-```
-
-
-y must be in first collomn
-```{r, warning=FALSE}
+```{r}
 str(data)
+anyNA(data)
 ```
+
 
 ADABOOST in gbm
 
-* Another option and thing i want to compare is JOUSboost
-
 This creates our Grid
 ```{r, warning=FALSE}
-
-interaction.depth <- 2:6
-
-
 grid <- as.matrix(expand.grid(
-  shrinkage <- seq(0.005, 0.25, 0.005), 
-  n.trees <- seq(100, 2000, 100), 
+  shrinkage <- seq(0.005, 0.25, 0.01), 
+  n.trees <- seq(100, 2000, 400), 
   interaction.depth <- c(2:6)
+  )
+  )
 
-  )
-  )
+conf_lev <- .95
+num_max <- 5 # Define number around the maximum
+n <- log(1-conf_lev)/log(1-num_max/nrow(grid))
+ind <- sample(nrow(grid), nrow(grid)*(n/nrow(grid)), replace = FALSE)
+rgrid <- grid[ind, ]
 ```
 
 This code performs hyperparameter tuning for an Adaboost model in the GBM function/package. The number of iterations is controlled by the variable n. At each iteration, the code samples s hyperparameter combinations from a pre-defined grid. Then, the data is split into modeling and test data sets. the modeling data is boostrapped to make train and val data sets to to be used to select hyperparameters to be tested.
@@ -125,14 +145,15 @@ For each hyperparameter combination, the average area under the curve (AUC) is c
 Finally, the code trains an Adaboostt model on the modeldata(both train and val) set using the best hyperparameters from each iteration. The AUC of that model is evaluated on a hold-out test set, and the results are stored in opt. 
 
 Note that the hyperparameters being tuned are shrinkage, n.trees, and interaction.depth. The nthread parameter controls the number of threads to use during training.
+
+
 ```{r, warning=FALSE}
 library(gbm)
 library(ROCR)
 
 
-n <- 50 # how many times we repeat the algorithm
-s <- 500 # how many hyperparamter sets are validated, length of randomgrid
-v <- 10 # how many times we bootstrapped a sample for each hyperparameter set
+n <- 10 # how many times we repeat the algorithm
+v <- 50 # how many times we bootstrapped a sample for each hyperparameter set
 
 
 
@@ -142,14 +163,10 @@ auc_t <- c()
 
 for(j in 1:n){
 
-# create the random grind
-  ind <- sample(nrow(grid), s, replace = FALSE)
-  rgrid <- grid[ind, ]
-  
-# create model data and test data
-  ind1 <- sample(nrow(data), nrow(data)*0.8)
-  md <- data[ind1, ]
-  test <- data[-ind1, ]
+  # put aside data for final test. creat md and test
+ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
+md <- data[ind, ]
+test <- data[-ind, ]
   
     V_auc_mean <- c()
   for (i in 1:nrow(rgrid)){
@@ -169,7 +186,6 @@ for(j in 1:n){
                    shrinkage = rgrid[i, 1], 
                    n.trees = rgrid[i, 2], 
                    interaction.depth = rgrid[i, 3],
-                   n.cores = 3,
                    verbose = FALSE,
                    data = train
                    )
@@ -221,117 +237,12 @@ phat <- predict(model, n.trees = rgrid[i, 2], newdata = val, type = "response")
  # store the test score
   opt[j, 5] <- auc_t
 }
+head(opt)
 ```
 
-take the top x percentage of test scores in opt and put them and there hyper parameters into win
-```{r, warning=FALSE}
-th <- quantile(opt[ ,5], probs = 0.50)
-ind_opt <- which(opt[ ,5] >= th)
-
-win <- opt[ind_opt, ]
-win
-```
-
-This uses bootstrapping for making data sets. we test each hyperparameter on the same sets/splits
-```{r, warning=FALSE}
-
-library(gbm)
-library(ROCR)
-
-n <- 400
-w <- nrow(win)
-
-#collums are hyper param set
-bs_results <- matrix(0, nrow = n, ncol = w)
-
-
-
-for (i in 1:n) {
-  for (j in 1:w){
-    auc <- c()
-  #cat("loops: ", i, j, "\r")
-  
-  # bootstrap the data
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  md <- data[ind, ]
-  test <- data[-ind, ]
-
-  model <- gbm(y ~ ., 
-                   distribution = "adaboost", 
-                   bag.fraction = 1,
-                   shrinkage = win[j, 1], 
-                   n.trees = win[j, 2], 
-                   interaction.depth = win[j, 3],
-                   n.cores = 3,
-                   verbose = FALSE,
-                   data = md
-                   )
-
-  
-  # Predicting on the test set
-  phat <- predict(model, test, n.trees = win[j, 2], type = "response")
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test$y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc <- auc_ROCR@y.values[[1]]
-  
-  # matrix with n rows and w collums. each collum is a hyper parameter
- bs_results[i, j] <- auc 
-}
-}
-```
-
-this takes the colmeans and finds the best hyperparameter set and assigns it to bh. we also cbind the other results onto win just incase we want to look at the other options.
-```{r, warning=FALSE}
-bh_ind <- which.max(colMeans(bs_results))
-bh <- win[bh_ind, ]
-mean(bs_results[,bh_ind])
-cm <- as.vector(colMeans(bs_results))
-win <- cbind(win, av_ovr_n_runs=cm)
-```
-
-This just does a final test on our selected winning Hyperparameters
-```{r, warning=FALSE}
-library(gbm)
-library(ROCR)
-
-n <- 1000
-
- auc <- c()
-for(i in 1:n){
- # bootstap
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  md <- data[ind, ]
-  test <- data[-ind, ]
-# build the model on md
-  model <- gbm(y ~ ., 
-                   distribution = "adaboost", 
-                   bag.fraction = 1,
-                   shrinkage = bh[1], 
-                   n.trees = bh[2], 
-                   interaction.depth = bh[3],
-                   n.cores = 3,
-                   verbose = FALSE,
-                   data = md
-                   )
-
-  
-  # Predicting on the test set
-  phat <- predict(model, test, n.trees = bh[2], type = "response")
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test$y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc[i] <- auc_ROCR@y.values[[1]]
-  }
-
-mean(auc)
-sd(auc)
-```
 
 ```{r, warning=FALSE}
-
+auc <- opt[, 5]
 # plot auc and 95% CI
 plot(auc, col="red")
 abline(a = mean(auc), b = 0, col = "blue", lwd = 2)

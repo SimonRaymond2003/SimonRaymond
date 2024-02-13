@@ -1,5 +1,32 @@
 ---
 title: "About Myself and This Page"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
+navbar:
+  title: "Simon Raymond"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "Titanic XGBoosting"
+      href: Titanic_XGBoosting.html
+    - text: "Titanic Adaboost"
+      href: Titanic_Adaboost.html
+    - text: "Titanic Nnet"
+      href: Titanic_Nnet.html
+    - text: "Titanic_LM_CART_and_RF"
+      href: Titanic_LM_CART_RF.html
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
 
 My name is Simon Raymond. I have finished my second year at Saint Mary's University in Halifax NS. I currently have not picked a major but i am very interested in Econometrics and Machine learning and am planning on taking a honours in economics.

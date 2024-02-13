@@ -1,4 +1,12 @@
-name: "Simon Raymond"
+---
+title: "Speeds"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
 navbar:
   title: "Simon Raymond"
   left:
@@ -6,20 +14,19 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
-    - text: "Titanic_XGBoosting"
+    - text: "Titanic XGBoosting"
       href: Titanic_XGBoosting.html
-    - text: "Titanic_Adaboost"
+    - text: "Titanic Adaboost"
       href: Titanic_Adaboost.html
-    - text: "Titanic_Nnet"
+    - text: "Titanic Nnet"
       href: Titanic_Nnet.html
-      name: SimonRaymond  
     - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
     - text: "XGB_2"
       href: XGB_2.html
     - text: "Speeds"
       href: Speeds.html
-      name: SimonRaymond
-output_dir: docs
+name: SimonRaymond
+---
 
-
+I am working on this currently.

@@ -1,5 +1,12 @@
 ---
 title: "Titanic LM, CART, and RF"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
 navbar:
   title: "Simon Raymond"
   left:
@@ -13,12 +20,14 @@ navbar:
       href: Titanic_Adaboost.html
     - text: "Titanic Nnet"
       href: Titanic_Nnet.html
-    - text: "Titanic_LM_CART_RF"
+    - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
-      name: SimonRaymond 
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
-
-titanic rf lm and cart
 
 # Data Prep
 
@@ -108,55 +117,45 @@ data_lm <- data_lm[, -which(colnames(data_lm) == "Embarked")]
 ```{r, warning=FALSE}
 library(foreach)
 library(doParallel)
+library(ROCR)
 
-n <- 100 # this number times 3
+n <- 100 # Number of bootstrap samples
+obs <- nrow(data_lm) # Assuming data_lm is already defined
 
-obs <- nrow(data_lm) # observations
-
-trials <- 1:3
-numCores <- detectCores()-1
-
+numCores <- detectCores() - 1
 cl <- makeCluster(numCores)
 registerDoParallel(cl)
 
-lst <- foreach(k=trials, .packages = c("ROCR")) %dopar% {
+# Run parallel computation with bootstrapping
+auc_list <- foreach(i = 1:n, .packages = "ROCR") %dopar% {
   
-  auc <- c()
-  for (i in 1:n){
-    
-    idx <- sample(obs, obs, replace = TRUE)
-    train <- data_lm[idx,]
-    test <- data_lm[-idx, ]
-    
-    model <- lm(y ~ ., data = train)
-    
-    phat <- predict(model, test)
-
-    pred_rocr <- prediction(phat, test$y)
-    auc_ROCR <- performance(pred_rocr, measure = "auc")
-    auc[i] <- auc_ROCR@y.values[[1]]
-    
-  }
-  return(auc)
+  idx <- sample(obs, obs, replace = TRUE)
+  trn <- data_lm[idx, ] # Training data
+  tst <- data_lm[-idx, ] # Test data
+  
+  mdl <- lm(y ~ ., data = trn)
+  phat <- predict(mdl, tst)
+  
+  pred <- prediction(phat, tst$y)
+  performance(pred, "auc")@y.values[[1]]
 }
 
 stopCluster(cl)
 
-# combine the results
-auc <- unlist(lst)
+# Process the AUC results
+auc_values <- unlist(auc_list)
+mean_auc <- mean(auc_values)
+sd_auc <- sd(auc_values)
 
-mean(auc)
-sd(auc)
+results <- list(mean = mean_auc, sd = sd_auc)
 
-```
+# Plot AUC values, mean, and confidence intervals
+plot(auc_values, col = "red", main = "AUC Distribution", xlab = "Iteration", ylab = "AUC")
+abline(h = mean_auc, col = "blue", lwd = 2, lty = 2) # Mean line
+abline(h = mean_auc - 1.96 * sd_auc, col = "green", lwd = 2, lty = 3) # Lower CI
+abline(h = mean_auc + 1.96 * sd_auc, col = "green", lwd = 2, lty = 3) # Upper CI
 
-```{r, warning=FALSE}
-
-# plot auc and mean
-plot(auc, col="red")
-abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
-abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
-abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+results
 
 ```
 
@@ -169,52 +168,43 @@ library(ROCR)
 library(foreach)
 library(doParallel)
 
-n <-  100 # this number times 3
-obs <- nrow(data) # observations
+n <- 100 # Number of iterations
+obs <- nrow(data) # Total number of observations in your dataset
 
-trials <- 1:3
-numCores <- detectCores()-1
+numCores <- detectCores() - 1
 
 cl <- makeCluster(numCores)
 registerDoParallel(cl)
 
-lst <- foreach(k=trials, .packages = c("rpart", "ROCR")) %dopar% {
+# Performing bootstrapping in parallel
+auc <- foreach(i = 1:n, .packages = c("rpart", "ROCR")) %dopar% {
   
-  auc <- c()
-  for (i in 1:n){
-    idx <- sample(obs, obs, replace = TRUE)
-    train <- data[idx,]
+    idx <- unique(sample(obs, obs, replace = TRUE))
+    train <- data[idx, ]
     test <- data[-idx, ]
     
     model <- rpart(y ~ ., data = train, method = "class")
-    
-    phat <- predict(model, test, type = "prob")[,2]
+    phat <- predict(model, test, type = "prob")[, 2]
     
     pred_rocr <- prediction(phat, test$y)
-    auc_ROCR <- performance(pred_rocr, measure = "auc")
-    auc[i] <- auc_ROCR@y.values[[1]]
+    auc_ROCR <- performance(pred_rocr, measure = "auc")@y.values[[1]]
     
-  }
-  return(auc)
+    return(auc_ROCR)
 }
 
 stopCluster(cl)
 
-# combine the results
-auc <- unlist(lst)
+# Combine the results
+auc_values <- unlist(auc)
+mean_auc <- mean(auc_values)
+sd_auc <- sd(auc_values)
 
-mean(auc)
-sd(auc)
+# Plotting the AUC values along with mean and confidence intervals
+plot(auc_values, col="red", pch=16, xlab="Iteration", ylab="AUC", main="AUC Distribution")
+abline(h = mean_auc, col = "blue", lwd = 2, lty = 2) # Mean AUC
+abline(h = mean_auc - 1.96 * sd_auc, col = "green", lwd = 2, lty = 3) # Lower 95% CI
+abline(h = mean_auc + 1.96 * sd_auc, col = "green", lwd = 2, lty = 3) # Upper 95% CI
 
-```
-
-```{r, warning=FALSE}
-
-# plot auc and mean
-plot(auc, col="red")
-abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
-abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
-abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
 
 ```
 
@@ -222,9 +212,6 @@ abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
 # Random Forest
 This is a Random Forest Algorithm that uses Parallel processing. In the loop ntree is set to B. I use Bootstrapping data samples instead of k-fold-cross-validation as it is more robust and lets me reproduce the model as many times as i like.
 ```{r, warning=FALSE}
-
-
-
 library(randomForest)
 library(ROCR)
 library(foreach)
@@ -235,19 +222,15 @@ n <-  100 # this number times 3
 
 obs <- nrow(data) # observations
 
-trials <- 1:3
 numCores <- detectCores()-1
 
 cl <- makeCluster(numCores)
 registerDoParallel(cl)
 
 
-lst <- foreach(k=trials, .packages = c("randomForest", "ROCR")) %dopar% {
-  
-  auc <- c()
-  for (i in 1:n){
+lst <- foreach(i=1:n, .packages = c("randomForest", "ROCR")) %dopar% {
     
-    idx <- sample(obs, obs, replace = TRUE)
+    idx <- unique(sample(obs, obs, replace = TRUE))
     train <- data[idx,]
     test <- data[-idx, ]
     
@@ -258,22 +241,14 @@ lst <- foreach(k=trials, .packages = c("randomForest", "ROCR")) %dopar% {
   
     pred_rocr <- prediction(phat[,2], test$y)
     auc_ROCR <- performance(pred_rocr, measure = "auc")
-    auc[i] <- auc_ROCR@y.values[[1]]
-    
-  }
-  return(auc)
+    auc_ROCR@y.values[[1]]
+
 }
 
 stopCluster(cl)
 
 # combine the results
 auc <- unlist(lst)
-
-mean(auc)
-sd(auc)
-```
-
-```{r, warning=FALSE}
 
 # plot auc and mean
 plot(auc, col="red")

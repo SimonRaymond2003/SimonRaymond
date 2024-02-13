@@ -1,0 +1,17 @@
+knitr
+ggplot2
+plotly
+readr
+dplyr
+forcats
+stringr
+tidyr
+DataExplorer
+randomForest
+xgboost
+shiny
+GGally
+ROCR
+foreach
+iterators
+doParallel

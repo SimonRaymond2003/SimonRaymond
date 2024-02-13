@@ -1,5 +1,12 @@
 ---
 title: "Titanic XGBoosting"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: tango
+date: "2024-01-28"
 navbar:
   title: "Simon Raymond"
   left:
@@ -15,432 +22,946 @@ navbar:
       href: Titanic_Nnet.html
     - text: "Titanic_LM_CART_and_RF"
       href: Titanic_LM_CART_RF.html
-      name: SimonRaymond 
+    - text: "XGB_2"
+      href: XGB_2.html
+    - text: "Speeds"
+      href: Speeds.html
+name: SimonRaymond
 ---
 
+```{r setup}
+library(knitr)
+opts_chunk$set(cache = TRUE, warning = FALSE)
 
-
-
-This will be the file for my titanic xgb
-
-# Data Prep
-Download the Data
-```{r, warning=FALSE}
-library(readr)
-
-train_titanic <- read_csv("train.csv")
 ```
 
-The collums i will use are y, Pclass, Sec, Age, SibSp, Parch, Fare, Emarked as they are the easiest to work with. other possibilities include using the titles for names 
+Simon Raymond
+
+## 1. Data Preparation and Setup
+
+Initial data loading and basic transformations.
+
+```{r, cache = TRUE, warning = FALSE}
+
+suppressPackageStartupMessages({
+    library(plotly)
+    library(readr)
+    library(dplyr)
+    library(forcats)
+    library(stringr)
+    library(tidyr)
+    library(DataExplorer)
+    library(randomForest)
+    library(xgboost)
+    library(shiny)
+    library(GGally)
+    library(ROCR)
+    library(ggplot2)
+    library(doParallel)
+})
+
+```
+
+
+```{r, cache = TRUE, warning = FALSE}
+# Loading datasets
+data <- read_csv("train.csv")
+pd <- read_csv("test.csv")
+
+# Initial data exploration
+introduce(data)
+data %>% plot_intro()
+data %>% glimpse()
+data %>% plot_missing()
+data %>% profile_missing()
+data %>% plot_density()
+
+
+```
+
+## 2. Feature Engineering
+
+```{r, cache = TRUE, warning = FALSE}
+# Extracting new features and handling missing values
+data <- data %>%
+  mutate(
+    Ticket_Length = nchar(Ticket),
+    Ticket_Is_Number = !grepl("\\D", Ticket),
+    Title = str_extract(Name, "\\b[[:alpha:]]+\\."),
+    Name_Length = nchar(Name),
+    Cabin_Letter = ifelse(!is.na(Cabin), substr(Cabin, 1, 1), NA_character_),
+    Has_Cabin = !is.na(Cabin)
+  ) %>%
+  add_count(Title) %>%
+  mutate(
+    Title = ifelse(n < 10, 'Other', as.character(Title)), # Adjust threshold if needed
+    Cabin_Letter = ifelse(Cabin_Letter %in% c('T', 'G'), 'Missing', as.character(Cabin_Letter)),
+    Cabin_Letter = factor(Cabin_Letter)
+  )
+
+```
+
+## 3. Data Cleaning
+
+Removing unnecessary columns, handling NAs, and imputing missing values for the Age column.
+
+```{r, cache = TRUE, warning = FALSE}
+# Removing unnecessary columns and initial handling of missing values
+data <- data %>%
+  select(-Name, -Ticket, -Cabin) %>%
+  mutate(across(where(is.character), as.factor)) %>%
+  mutate(across(where(is.factor) & !one_of("Age", "Embarked"), fct_explicit_na, na_level = "Missing")) %>%
+  mutate(Embarked = replace(Embarked, is.na(Embarked), "S")) %>% # from research
+  mutate(Pclass = as.factor(Pclass))
+```
+
+Imputing missing values in the 'Age' column using Random Forest
+```{r, cache = TRUE, warning = FALSE}
+# Splitting the dataset
+data_with_age <- data %>% filter(!is.na(Age))
+data_missing_age <- data %>% filter(is.na(Age))
+
+# Model training
+model_age <- randomForest(Age ~ . - PassengerId, data = data_with_age, na.action = na.omit)
+
+# Predicting and filling missing Ages
+predicted_ages <- predict(model_age, newdata = data_missing_age)
+data_missing_age$Age <- predicted_ages
+
+# Combining datasets and reordering
+data <- rbind(data_with_age, data_missing_age) %>% arrange(PassengerId)
+
+```
+
+## 4. Final preperation for the data 
+
+Scale the numeric data
+```{r, cache = TRUE, warning = FALSE}
+# Scale numerical columns
+sdata <- data %>%
+  mutate(across(where(is.numeric) & !all_of(c("Survived", "PassengerId")), scale)) %>%
+  as_tibble()
+```
+
+Get the data ready for XGBOOST
+```{r, cache = TRUE, warning = FALSE}
+# Convert 'Survived' to numeric for xgboost
+sdata$Survived <- as.numeric(factor(sdata$Survived, labels = c(0, 1))) - 1
+
+# Create model matrix for xgboost
+xs <- model.matrix(~ . - 1 - Survived - PassengerId, data = sdata)
+y <- sdata$Survived
+
+```
+
+## 5. Correlation Plots
+
 ```{r}
-library(dplyr)
+# Create dataset with numeric variables excluding 'PassengerId'
+dn <- data %>%
+  select(-PassengerId) %>%
+  select_if(~is.numeric(.)) 
 
-selected_cols <- c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")
-data <- train_titanic[selected_cols]
-data <- data %>% rename(y = Survived)
+# Create dataset with factor variables excluding 'PassengerId'
+df <- data %>%
+  select(-PassengerId) %>%
+  select_if(~is.factor(.)) %>%
+  bind_cols(select(data, Survived))
+
+total_levels <- sapply(df %>% select(-Survived), function(x) if(is.factor(x)) nlevels(x) else 0)
+sorted_vars <- names(total_levels[order(total_levels, decreasing = TRUE)])
+mid_point <- length(sorted_vars) / 2
+group1_vars <- sorted_vars[1:ceiling(mid_point)]
+group2_vars <- sorted_vars[(ceiling(mid_point) + 1):length(sorted_vars)]
+
+group1_vars <- c(group1_vars, "Survived")
+group2_vars <- c(group2_vars, "Survived")
+
+# Create two new datasets based on these groups
+df1 <- df %>% select(all_of(group1_vars))
+df2 <- df %>% select(all_of(group2_vars))
+
+plot_correlation(df1)
+plot_correlation(df2)
+plot_correlation(dn)
 ```
 
-convert the characters to factors. convert our y variable to numeric for XGBoosting
-```{r, warning=FALSE}
-char_cols <- sapply(data, is.character)
-data[, char_cols] <- lapply(data[, char_cols], factor)
-data$y <- as.numeric(data$y)
+
+## 6. Feature Importance Analysis
+
+In a randomforest model what is the auc and the most important predictors
+```{r, cache = TRUE, warning = FALSE}
+it <- 100 # Number of iterations
+imp_df <- data.frame(matrix(0, nrow = it, ncol = 14))
+colnames(imp_df) <- c("Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked", "Ticket_Length", 
+                      "Ticket_Is_Number", "Title", "Name_Length", "n", "Cabin_Letter", "Has_Cabin")
+
+auc <- numeric(it)  # ensure that 'it' is used here instead of 'n'
+for (i in 1:it) {
+    ind <- sample(nrow(data), nrow(data), replace = TRUE)
+    train <- data[ind, ]
+    test <- data[-ind, ]
+    mod <- randomForest(Survived ~ . - PassengerId, data = train, ntree = 1200, family = "binomial")
+    phat <- predict(mod, newdata = test, type = "response")
+    pred_roc <- prediction(phat, as.numeric(test$Survived))
+    auc[i] <- performance(pred_roc, "auc")@y.values[[1]]
+
+    # Get the importance scores as a named vector
+    imp_scores <- importance(mod)
+    imp_scores_vector <- as.vector(imp_scores[,1])  # Assuming you want the first column of the importance matrix
+    names(imp_scores_vector) <- rownames(imp_scores)
+
+    # Assign the scores to the dataframe
+    imp_df[i, names(imp_scores_vector)] <- imp_scores_vector
+}
+
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+mean(auc)
+sd(auc)
+```
+
+Rank the most important predictors
+```{r}
+
+col_means <- colMeans(imp_df)
+mean_df <- data.frame(Feature = names(col_means), Mean = col_means)
+
+# Plotting
+ggplot(mean_df, aes(x = reorder(Feature, Mean), y = Mean)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Feature Importance", x = "Feature", y = "Mean Importance") +
+  coord_flip()  # Flipping coordinates for better readability
 
 ```
 
-we have NAs we need to deal with
-```{r, warning=FALSE}
-colSums(is.na(data))
+Pclass
+Description: Passenger class, a proxy for socio-economic status with 1 being the highest and 3 the lowest.
+Origin: Extracted directly from the Titanic dataset. It's a crucial variable as passenger class was a significant factor in survival rates.
+
+Sex
+Description: Gender of the passengers, either male or female.
+Origin: Directly from the Titanic dataset. Gender played a key role in survival, as women were often given priority for lifeboats.
+
+Age
+Description: Age of the passengers.
+Origin: This is a primary variable from the Titanic dataset. Age, as a demographic factor, likely influenced survival chances.
+
+SibSp
+Description: Number of siblings or spouses aboard the Titanic.
+Origin: Taken from the Titanic dataset, it indicates family size, which could influence survival decisions and opportunities.
+
+Parch
+Description: Number of parents or children aboard.
+Origin: From the Titanic dataset, indicating if the passenger was traveling with family, especially with dependents.
+
+Fare
+Description: Passenger fare.
+Origin: Represents the amount paid for the journey, sourced from the Titanic dataset. Higher fares might correlate with higher passenger classes.
+
+Embarked
+Description: Port of embarkation (C = Cherbourg, Q = Queenstown, S = Southampton).
+Origin: Part of the original dataset, potentially relevant as passengers' embarkation points might correlate with other socio-economic factors.
+
+Ticket_Length
+Description: Length of the ticket number as a numerical value.
+Origin: Engineered feature, derived from the length of the ticket number string. It’s a proxy to differentiate ticket types.
+
+Ticket_Is_Number
+Description: Boolean indicating whether the ticket is purely numeric.
+Origin: An engineered feature created to see if having a numeric ticket correlates with any survival pattern.
+
+Title
+Description: Title extracted from the passenger's name, such as Mr., Mrs., etc.
+Origin: An engineered feature derived from passengers' names. It's useful in inferring social status, gender, and marital status.
+
+Name_Length
+Description: Length of the passenger's name.
+Origin: This is an engineered feature, indicating possibly if longer names (which might include titles or honorifics) correlate with social status or survival rate.
+
+n
+Description: Frequency of each title in the dataset.
+Origin: This engineered feature counts how common each title is, which can provide insights into the typical social status or role groups aboard the ship.
+
+Cabin_Letter
+Description: The first letter of the cabin number, which could indicate the deck or location on the ship.
+Origin: Extracted and engineered from the cabin information in the dataset, giving an idea about the passenger's accommodation location which could influence survival likelihood.
+
+Has_Cabin
+Description: A Boolean indicating whether the passenger had a cabin on the Titanic.
+Origin: An engineered feature from the cabin data, representing whether the passenger had a private cabin, potentially correlating with class and survival rate.
+
+## 7. XGBoost Algorithm Function
+
+### Test size
+
+I want to quickly note that in my functions for my validation runs i use bootstrapping as such.
+```{r}
+# the length is just to show the % split that is being put into the index
+length(unique(sample(100, 100, replace = TRUE)))
 ```
 
-First i am going to predict the NAs for Age with a simple Random Forest model.
-```{r, warning=FALSE}
-na_index <- which(is.na(data$Age))#index the missing NAs
-na_data <- data[na_index, ]#create a data frame of the NAs indexed
-c_data <-data[-na_index, ]#take the complete data to c_data
-na_data <- na_data[, -which(names(data) == "Age")] # take out the collum that only has NAs in it
+however for my Test set i am increasing the number of times a sample a row index so that my model data is larger. i want a range closer the 20-25 % because my data is so small.
+```{r}
+length(unique(sample(100, 133, replace = TRUE)))
 ```
 
- i will use na.roughfix() for the two missing Embarked values
-```{r, warning=FALSE}
-library(randomForest)
+### Main function
 
-c_data <- na.roughfix(c_data)# there are two NAs in embarked
-na_data <-  na.roughfix(na_data)
+```{r}
+run_xgb <- function(xs, y, grid, n, v) {
+  
+  # Set up parallel computing
+  numCores <- detectCores() - 1
+  cl <- makeCluster(numCores)
+  registerDoParallel(cl)
+
+  results <- foreach(i = 1:n, .combine='rbind', .packages=c('xgboost', 'ROCR')) %dopar% {
+    tryCatch({
+      # Bootstrap sampling
+      ind <- unique(sample(nrow(xs), round((nrow(xs) + nrow(xs)/3)), replace = TRUE))
+      md_x <- xs[ind, ]
+      md_y <- y[ind]
+      test_x <- xs[-ind, ]
+      test_y <- y[-ind]
+
+      auc <- numeric(nrow(grid))
+      for (j in 1:nrow(grid)) {
+          auc_100 <- numeric(v)
+          for (k in 1:v) {
+              # Nested validation loop
+              ind2 <- unique(sample(nrow(md_x), nrow(md_x), replace = TRUE))
+              train_x <- md_x[ind2, ]
+              train_y <- md_y[ind2]
+              val_x <- md_x[-ind2, ]  
+              val_y <- md_y[-ind2]
+
+              # Model training
+              params <- list(
+                  booster = "gbtree",
+                  objective = "binary:logistic",
+                  max_depth = grid[j, "max_depth"], 
+                  eta = grid[j, "eta"],
+                  subsample = grid[j, "subsample"],
+                  colsample_bytree = grid[j, "colsample_bytree"],
+                  gamma = grid[j, "gamma"],
+                  min_child_weight = grid[j, "min_child_weight"],
+                  alpha = grid[j, "alpha"],
+                  lambda = grid[j, "lambda"]
+              )
+              xgb_train <- xgb.DMatrix(data = train_x, label = train_y) 
+              xm <- xgb.train(params = params, data = xgb_train, nrounds = grid[j, "nrounds"], verbose = FALSE, nthread = 1)
+              
+              # AUC calculation
+              phat <- predict(xm, xgb.DMatrix(data = val_x))
+              pred_rocr <- prediction(phat, val_y)
+              auc_100[k] <- performance(pred_rocr, "auc")@y.values[[1]]
+          }
+          auc[j] <- mean(auc_100)
+      }
+
+      # Get the best hyperparameters
+      BI <- which.max(auc)
+      params_best <- grid[BI, ]
+
+      # Retrain and test
+      params <- list(
+          booster = "gbtree",
+          objective = "binary:logistic",
+          max_depth = grid[BI, "max_depth"], 
+          eta = grid[BI, "eta"],
+          subsample = grid[BI, "subsample"],
+          colsample_bytree = grid[BI, "colsample_bytree"],
+          gamma = grid[BI, "gamma"],
+          min_child_weight = grid[BI, "min_child_weight"],
+          alpha = grid[BI, "alpha"],
+          lambda = grid[BI, "lambda"]
+      )
+      xgb_dm <- xgb.DMatrix(data = md_x, label = md_y)
+      xgb_dt <- xgb.DMatrix(data = test_x, label = test_y)
+      xmt <- xgb.train(params = params, data = xgb_dm, nrounds = grid[BI, "nrounds"], verbose = FALSE, nthread = 1)
+      
+      phat_t <- predict(xmt, xgb_dt)
+      pred_rocr_t <- prediction(phat_t, test_y)
+      auc_t <- performance(pred_rocr_t, "auc")@y.values[[1]]
+
+      # Combine results
+      c(params_best, auc[BI], auc_t, BI)
+    }, error = function(e) {
+      # Handle the error
+      message("Error in iteration ", i, ": ", e$message)
+      return(NA) # Return NA or any other value you deem appropriate
+    })
+  }
+
+  # Stop the cluster
+  stopCluster(cl)
+
+  # Convert the results matrix to a tibble
+  rt <- as_tibble(results, .name_repair = "universal")
+
+  # Assign column names
+  colnames(rt) <- c("eta", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "lambda", "alpha", "gamma", "nrounds", "AUC_val_v_runs", "AUC_Test", "Rgrid_ind")
+
+  # Unlist each column and return as a tibble
+  aaa <- rt %>%
+    mutate(
+      eta = unlist(eta),
+      max_depth = unlist(max_depth),
+      min_child_weight = unlist(min_child_weight),
+      subsample = unlist(subsample),
+      colsample_bytree = unlist(colsample_bytree),
+      lambda = unlist(lambda),
+      alpha = unlist(alpha),
+      gamma = unlist(gamma),
+      nrounds = unlist(nrounds),
+      AUC_val_v_runs = unlist(AUC_val_v_runs),
+      AUC_Test = unlist(AUC_Test),
+      Rgrid_ind = unlist(Rgrid_ind)
+    )
+
+  return(aaa)
+}
+
 ```
 
-Predict our NAs
-```{r, warning=FALSE}
-library(randomForest)
+### nrounds and eta function
 
-model_rf <- randomForest(Age ~.,
-                         ntree = 1200, 
-                         data = c_data) 
+This is gonna be a function to set eta and tune for nrounds. In this case i will use it at the beginning to show a idea of how fast the xgboost model is reaching a resonable rnounds range then again at the end to do a final tune for nrounds.
 
-pred_na <- predict(model_rf, na_data)
+```{r}
+opt_nrd4eta <- function(xs, y, params, o , grd) {
+  # Assuming xgb.train and related functions are already available (via library(xgboost))
+  library(xgboost)
+  library(ROCR)
+  
+  # Detect the number of cores
+  numCores <- detectCores() - 1
+  
+  # Initialize an AUC matrix
+  aucm <- matrix(0, nrow = o, ncol = length(grd))
+  
+  start_time <- Sys.time()
+  
+  for (j in 1:o){
+    # Creating a bootstrap sample
+    ind <- unique(sample(nrow(xs), nrow(xs), replace = TRUE))
+    
+    dm <- xgb.DMatrix(data = xs[ind, ], label = y[ind])
+    dv <- xgb.DMatrix(data = xs[-ind, ], label = y[-ind])
+    
+    auc <- c()
+    for (i in 1:length(grd)){
+      
+      # Training the model on the bootstrap sample
+      bsm <- xgb.train(params = params,
+                       data = dm,
+                       nrounds = grd[i],
+                       verbose = FALSE,
+                       nthread = numCores
+                       )
+      
+      # Predict on the validation set and calculate AUC
+      phat <- predict(bsm, dv, type = "prob")
+      
+      # Calculating the AUC
+      pred_rocr <- prediction(phat, y[-ind])
+      auc_ROCR <- performance(pred_rocr, measure = "auc")
+      auc[i] <- auc_ROCR@y.values[[1]] 
+    }
+    aucm[j, ] <- auc
+  }
+  
+  evalauc <- colMeans(aucm)
+  
+  # Plotting
+  plot(grd, evalauc, type = "b", col = "blue", 
+       xlab = "Number of Rounds", ylab = "AUC", 
+       main = "AUC over o rounds vs Number of Rounds in XGBoost")
+  
+  best_nrounds <- grd[which.max(evalauc)]
+  max_auc <- max(evalauc)
+  
+  end_time <- Sys.time()
+  elapsed_time <- end_time - start_time
+  
+  return(list(best_nrounds = best_nrounds, max_auc = max_auc, elapsed_time = elapsed_time))
+}
 ```
 
-This binds our predictions to the corresponding index number for each missing NA in "data"
-```{r, warning=FALSE}
-na_n_ind <- cbind(pred_na, na_index)
+### Kill rgrid Length Function
 
-data$Age[na_n_ind[, 2]] <- na_n_ind[, 1]
+```{r}
+
+
+kill_rg <- function(xs, y, rgrid, fv) {
+  
+  cl <- makeCluster(detectCores() - 1)
+  registerDoParallel(cl)
+  
+  # Perform hyperparameter tuning
+  auc <- foreach(j = 1:nrow(rgrid), .combine = c, .packages = c("xgboost", "ROCR")) %dopar% {
+    vauc <- numeric(fv)
+    
+    for (i in 1:fv) {
+      # Bootstrap sampling
+      ind <- unique(sample(nrow(xs), nrow(xs), replace = TRUE))
+      unique_ind <- unique(ind)
+      dtrain_x <- xs[unique_ind, ]
+      dtrain_y <- y[unique_ind]
+      test_x <- xs[-unique_ind, ]
+      test_y <- y[-unique_ind]
+      
+      # Model training with current set of hyperparameters
+      params <- list(
+        booster = "gbtree",
+        objective = "binary:logistic",
+        max_depth = rgrid[j, "max_depth"],
+        eta = rgrid[j, "eta"],
+        subsample = rgrid[j, "subsample"],
+        colsample_bytree = rgrid[j, "colsample_bytree"],
+        gamma = rgrid[j, "gamma"],
+        min_child_weight = rgrid[j, "min_child_weight"],
+        alpha = rgrid[j, "alpha"],
+        lambda = rgrid[j, "lambda"]
+      )
+      
+      xgb_train <- xgb.DMatrix(data = dtrain_x, label = dtrain_y)
+      xm <- xgb.train(params = params, data = xgb_train, nrounds = rgrid[j, "nrounds"], verbose = FALSE, nthread = 1)
+      
+      # AUC calculation
+      phat <- predict(xm, xgb.DMatrix(data = test_x))
+      pred_rocr <- prediction(phat, test_y)
+      vauc[i] <- performance(pred_rocr, "auc")@y.values[[1]]
+    }
+    
+    mean(vauc)
+  }
+  
+  # Stop the parallel backend
+  stopCluster(cl)
+  
+  # Process AUC results to filter the top 50% performing hyperparameter sets
+  sorted_indices <- order(auc, decreasing = TRUE)
+  top_indices <- sorted_indices[1:(length(sorted_indices)/2)]
+  kgrid <- rgrid[top_indices, ]
+  
+  # Return the filtered hyperparameter grid
+  return(kgrid)
+}
+
 ```
 
-finnaly just use na.roughfix() for the two embarked values in the actualy data sets
-```{r, warning=FALSE}
-library(randomForest)
+## 8. Run our model
 
-data <- na.roughfix(data)
-colSums(is.na(data))
+### Get a general feel for nrounds value
+
+This is the process we should be listening too. i will show why we dont use early stopping rounds with watchlist etc
+```{r}
+
+# Define XGBoost parameters
+params <- list(
+  booster = "gbtree",
+  objective = "binary:logistic",
+  eta = 0.1 
+)
+grd <- seq(1, 200, by = 10)
+o <- 100
+rs <- opt_nrd4eta(xs = xs, y = y, params = params, o, grd)
+
+
+print(rs)
 ```
 
-```{r, warning=FALSE}
-str(data)
+We see that nrounds peaks very very fast. if we do xgboosting watchlistit very fast there aswell but the watchlist/early_stopping_rounds has a issue i will talk about.
+
+I want to note that the internal xgboost watchlist early stopping rounds is very similar but not the same exactly.. it shows it its peak very fast
+
+We must use my method due to the fact that in mine each point of the graph is 100 runs so it is more reliable. However i will print out the xgboost internal way of of seeing because it bring up a very important point
+
+Now  we use early stopping rounds with bootstrapping
+```{r}
+params <- list(booster = "gbtree",
+               objective = "binary:logistic",
+               eta = 0.1)
+
+max_rounds <- 1000
+esr <- 10
+n <- 1000
+
+# Vector to store the best iteration for each bootstrap sample
+bit <- c()
+auc <- c()
+
+for (i in 1:n){
+  
+    # Creating a bootstrap sample
+    ind <- unique(sample(nrow(xs), nrow(xs), replace = TRUE))
+    
+    dm <- xgb.DMatrix(data = xs[ind, ], label = y[ind])
+    dv <- xgb.DMatrix(data = xs[-ind, ], label = y[-ind])
+    
+    # Training the model on the bootstrap sample
+    bsm <- xgb.train(params = params,
+                     data = dm,
+                     nrounds = max_rounds,
+                     early_stopping_rounds = esr, 
+                     watchlist = list(train = dm, val = dv),
+                     eval_metric = "auc",
+                     maximize = TRUE,
+                     verbose = FALSE
+                     )
+
+    # Storing the best iteration
+    bit[i] <- bsm$best_iteration
+    
+  # Predict on the validation set and calculate AUC
+  phat <- predict(bsm, dv, type = "prob")
+
+  # Calculating the AUC
+  pred_rocr <- prediction(phat, y[-ind])
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc[i] <- auc_ROCR@y.values[[1]] 
+}
+
+
+
+frequency <- table(factor(bit))
+
+# Creating a bar plot
+barplot(frequency, main = "Frequency of Best Iterations", 
+        xlab = "Best Iteration", ylab = "Frequency")
+
+
 ```
 
-# xgBoosting 
+Looking just at watchlist early stopping rounds someone could assume that the best nrounds is 1. !THIS IS NOT THE CASE!
 
-This code performs hyperparameter tuning for an XGBoost model. The number of iterations is controlled by the variable n. At each iteration, the code samples s hyperparameter combinations from a pre-defined grid. Then, the data is split into modeling and test data sets. the modeling data is boostrapped to make train and val data sets to to be used to select hyperparameters to be tested.
+I dislike k fold cross validation as it give varying results but it also says that the best iterations are not the first few iterations 
 
-For each hyperparameter combination, the average area under the curve (AUC) is calculated across the v validation runs. The hyperparameter combination with the highest average AUC is selected as the best hyperparameters for that iteration. The selected hyperparameters and their corresponding AUC are stored in the opt matrix.
+The ranges seem to be from 40 - 200 acording the cv. but i dont trust that due to how varying the results are
+```{r}
 
-Finally, the code trains an XGBoost model on the modeldata(both train and val) set using the best hyperparameters from each iteration. The AUC of that model is evaluated on a hold-out test set, and the results are stored in opt. 
+# Set parameters
+params <- list(
+  booster = "gbtree",
+  objective = "binary:logistic",
+  eta = 0.1
+)
 
-Note that the hyperparameters being tuned are nrounds, max_depth, eta, subsample, colsample_bytree, gamma, min_child_weight, alpha, and lambda. The nthread parameter controls the number of threads to use during training.
+num_rounds <- 1000
+esr <- 50
 
-This grid is very limited because of processing power. it is relatively tuned.
-```{r, warning=FALSE}
+# Create DMatrix
+d <- xgb.DMatrix(data = xs, label = y)
+
+# Perform cross-validation
+cvr<- xgb.cv(params = params,
+                     data = d,
+                     nfold = 5,
+                     nrounds = num_rounds,
+                     early_stopping_rounds = esr,
+                     maximize = TRUE,  
+                     verbose = TRUE,
+                     showsd = T,
+                     stratified = T,
+                     print.every.n = 10,
+                     eval_metric = "auc"
+                     )
+
+# Get the average AUC across all folds
+avg_auc <- max(cvr$evaluation_log$test_auc_mean)
+cat("Average AUC across all folds: ", avg_auc, "\n")
+cvr$best_iteration
+```
+
+
+I want to draw huge attention that this way is actually different then our way. This way takes the SINGLE best iteration from 1000 loops. it is not averaged out like in ours...
+
+For example iteration 1 or 2 may have extreme volatility in auc (this is what we observe in this data).. because of this high volatility it will win its run more often then iteration 30. HOWEVER just because it wins its iteration more doesnt mean it is better. Iteration 30 will on average be better then iteration 2.
+
+We can't just say this tho we have to test it....
+
+```{r}
+params <- list(
+  booster = "gbtree",
+  objective = "binary:logistic",
+  eta = 0.1 
+)
+
+# Define the range of grid values for number of rounds
+grd <- c(1, 3, 30, 40, 100, 200)
+
+# Set the number of iterations
+o <- 100
+
+# Call the function to optimize the number of rounds
+result <- opt_nrd4eta(xs, y, params, o, grd)
+
+```
+
+While i dont want to beat a dead horse into the ground i will do one last test so show that the lower values (1-10) are not to be tuned on. 
+
+This will set eta to 0.1 as the internal xgboost best_iteration would say is the best. we run it 100 times and look at the auc and how low it is.
+
+```{r}
+params <- list(booster = "gbtree",
+               objective = "binary:logistic",
+               eta = 0.1)
+
+n <- 250
+
+auc <- c()
+for (i in 1:n){
+  
+    # Creating a bootstrap sample
+    ind <- unique(sample(nrow(xs), nrow(xs), replace = TRUE))
+    
+    dm <- xgb.DMatrix(data = xs[ind, ], label = y[ind])
+    dv <- xgb.DMatrix(data = xs[-ind, ], label = y[-ind])
+    
+    # Training the model on the bootstrap sample
+    bsm <- xgb.train(params = params,
+                     data = dm,
+                     nrounds = 1
+                     )
+
+    
+  phat <- predict(bsm, dv, type = "prob")
+
+  pred_rocr <- prediction(phat, y[-ind])
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc[i] <- auc_ROCR@y.values[[1]] 
+  
+}
+
+# plot auc and 95% CI of the runs
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+
+```
+This supports exactly what we were saying. These low nrounds have a lower auc and higher variation when properly run
+
+```{r}
+sd(auc)
+mean(auc)
+```
+
+Show nrounds 50 has better auc and lower sd
+```{r}
+params <- list(booster = "gbtree",
+               objective = "binary:logistic",
+               eta = 0.1)
+
+n <- 250
+
+auc <- c()
+for (i in 1:n){
+  
+    # Creating a bootstrap sample
+    ind <- unique(sample(nrow(xs), nrow(xs), replace = TRUE))
+    
+    dm <- xgb.DMatrix(data = xs[ind, ], label = y[ind])
+    dv <- xgb.DMatrix(data = xs[-ind, ], label = y[-ind])
+    
+    # Training the model on the bootstrap sample
+    bsm <- xgb.train(params = params,
+                     data = dm,
+                     nrounds = 50
+                     )
+
+    
+  phat <- predict(bsm, dv, type = "prob")
+
+  pred_rocr <- prediction(phat, y[-ind])
+  auc_ROCR <- performance(pred_rocr, measure = "auc")
+  auc[i] <- auc_ROCR@y.values[[1]] 
+  
+}
+
+# plot auc and 95% CI of the runs
+plot(auc, col="red")
+abline(a = mean(auc), b = 0, col = "blue", lwd = 2)
+abline(a = mean(auc)-1.96*sd(auc), b = 0, col = "green", lwd = 3)
+abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
+sd(auc)
+mean(auc)
+```
+
+
+### Run the model
+
+Set how many times our n runs is by setting a number to multiple by ncores - 1
+
+my machine has 20 cores so it is these numbers times 19
+```{r}
+r1rm <- 10
+v <- 100
+```
+
+
+### define rgrid from grid
+
+Our grid is gonna be very small cause i dont want to run a million sets of hyperparameters
+```{r, cache = TRUE, warning = FALSE}
 grid <- expand.grid(
-  nrounds = seq(300, 300, by = 0),
-  max_depth = seq(13, 16, by = 2),
-  eta = seq(0.1, 0.2, by = 0.01),
-  subsample = seq(0.7, 0.8, by = 0.1),
-  colsampe_bytree = seq(0.7, 0.8, by = 0.1),
-  gamma = seq(1, 2, by = 1),
-  min_child_weight = seq(0, 5, by = 2),
-  alpha = seq(0, 1, by = 1),
-  lambda = seq(0, 1, by = 1)
+  eta = seq(0.1, 0.1, by = 0), 
+  max_depth = seq(14, 18, by = 4),
+  min_child_weight = seq(1, 1, by = 1), 
+  subsample = seq(0.8, 0.8, by = 0), 
+  colsample_bytree = seq(1, 1, by = 0),
+  lambda = seq(3, 5, by = 1), 
+  alpha = seq(0, 3, by = 1), 
+  gamma = seq(0, 5, by = 2.5), 
+  nrounds = c(50, 100, 125, 150) 
 )
 ```
 
-```{r, warning=FALSE}
-library(xgboost)
-library(ROCR)
+This creates a random grid
+```{r, cache = TRUE, warning = FALSE}
+conf_lev <- .95
+num_max <- 5 # Define number around the maximum
+n <- log(1-conf_lev)/log(1-num_max/nrow(grid))
+ind <- sample(nrow(grid), nrow(grid)*(n/nrow(grid)), replace = FALSE)
+rgrid <- grid[ind, ]
+```
 
-start_time <- Sys.time()
+### Killing off 75% of rgrid
 
-n <- 50 # how many times we repeat the algorithm
-s <- 500 # how many hyperparamter sets are validated, length of randomgrid
-v <- 10 # how many times we bootstrapped a sample for each hyperparameter set
+```{r}
+kgrid <- kill_rg(xs, y, rgrid, fv = 10)
+```
+
+```{r}
+k2grid <- kill_rg(xs, y, rgrid = kgrid, fv = 30)
+```
+
+```{r}
+k3grid <- kill_rg(xs, y, rgrid = k2grid, fv = 50)
+```
+
+```{r}
+k4grid <- kill_rg(xs, y, rgrid = k3grid, fv = 50)
+```
+
+```{r}
+rgrid <- k4grid
+```
 
 
-esr <- 5
-opt <- matrix(0, nrow = n, ncol = 11, dimnames = list(NULL, c("nrounds", "max_depth", "eta", "subsample", "colsampe_bytree", "gamma", "min_child_weight", "alpha", "lambda", "val_AUC", "Test_AUC")))
+### Xgboost First Fun
 
-auc_t <- c()
-for(j in 1:n){
-  
-  # this makes the random grid by sampling from grid s times
-  ind <- sample(nrow(grid), s, replace = FALSE)
-  rgrid <- grid[ind, ]
-  
-  #  this creates model data and test data
-  ind1 <- sample(nrow(data), nrow(data)*0.8)
-  md <- data[ind1, ]
-  test <- data[-ind1, ]
-  
-  v_auc_mean <- c()
-  for (i in 1:nrow(rgrid)) {
-    auc_tuning <- c()
-for (p in 1:v){
-  
-  #cat("loops: ", j, i, p, "\r")
-  
-  # bootstrap for samples
-  ind2 <- unique(sample(nrow(md), nrow(md), replace = TRUE))
-  train <- md[ind2, ]
-  val <- md[-ind2, ]
+define our inputs
+```{r, cache = TRUE, warning = FALSE}
+n <- (detectCores() - 1) * r1rm
+v <- v
+grid <- rgrid
+y <- y
+xs <- xs
+```
 
-  # One-hot coding using R's `model.matrix`
-  train_x <- model.matrix(~.+0, data = train[, -which(names(train) == "y")]) 
-  train_y <- train$y
- 
-  val_x <- model.matrix(~.+0, data = val[, -which(names(val) == "y")])
-  val_y <- val$y
-  
-  # Preparing efficient matrix
-  xgb_train <- xgb.DMatrix(data = train_x, label = train_y) 
-  xgb_val <- xgb.DMatrix(data = val_x, label = val_y)
+```{r, cache = TRUE, warning = FALSE}
+  start_time <- Sys.time()
 
-  # Training the model on train data
-  xgb_model <- xgb.train(params = list(objective = "binary:logistic"),
-                         data = xgb_train, 
-                         nrounds = rgrid[i, 1],
-                         max_depth = rgrid[i, 2],
-                         eta = rgrid[i, 3], 
-                         subsample = rgrid[i, 4],
-                         colsample_bytree = rgrid[i, 5],
-                         gamma = rgrid[i, 6],
-                         min_child_weight = rgrid[i, 7],
-                         alpha = rgrid[i, 8],
-                         lambda = rgrid[i, 9],
-                         early_stopping_rounds = esr,
-                         eval_metric = "auc",
-                         watchlist = list(train = xgb_train, val = xgb_val),
-                         verbose = FALSE,
-                         nthread = 3
-  )
+r1 <- run_xgb(xs, y, grid, n, v)
 
-  
-# Predicting on the val data
-phat <- predict(xgb_model, xgb_val, type = "prob")
+  # Calculate elapsed time
+  end_time <- Sys.time()
+  elapsed_time <- end_time - start_time
+```
 
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, val_y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc_tuning[p] <- auc_ROCR@y.values[[1]]
-}
+```{r}
+head(r1)
+```
+
+## 9. Selecting the best hyperparam set
+
+This just sets up our hyperparameters so see their frequencies etc.
+```{r, cache = TRUE, warning = FALSE}
+# Calculating the frequency of each hyperparameter set 
+freqr <- r1 %>%
+  group_by(eta, max_depth, min_child_weight, subsample, colsample_bytree, lambda, alpha, gamma, nrounds) %>%
+  summarise(Frequency = n()) %>%
+  ungroup()
+
+# Calculating the average AUC_Test for each unique set of hyperparameters
+avg_r1 <- r1 %>%
+  group_by(eta, max_depth, min_child_weight, subsample, colsample_bytree, lambda, alpha, gamma, nrounds) %>%
+  summarise(Avg_AUC_Test = mean(AUC_Test, na.rm = TRUE)) %>%
+  ungroup()
+
+# Merging the frequency data with the averaged AUC_Test scores
+mr <- left_join(avg_r1, freqr, by = c("eta", "max_depth", "min_child_weight", "subsample", "colsample_bytree", "lambda", "alpha", "gamma", "nrounds"))
+
+```
+
+Take the best test score that has a frequency of at least th
+```{r, cache = TRUE, warning = FALSE} 
+th <- max(mr$Frequency)/1.25
+filtered_m_r3 <- mr %>% 
+  filter(Frequency >= th)
+bp <- filtered_m_r3 %>% 
+  filter(Avg_AUC_Test == max(filtered_m_r3$Avg_AUC_Test))
+bp
+
+```
+
+## 10. Final Presentaion of AUC
+```{r, cache = TRUE, warning = FALSE}
+
+hp <- list(
+    eta = bp[["eta"]][1],
+    max_depth = bp[["max_depth"]][1],
+    min_child_weight = bp[["min_child_weight"]][1],
+    subsample = bp[["subsample"]][1],
+    colsample_bytree = bp[["colsample_bytree"]][1],
+    lambda = bp[["lambda"]][1],
+    alpha = bp[["alpha"]][1],
+    gamma = bp[["gamma"]][1]
+)
+
+# Set up parallel backend to use multiple cores
+registerDoParallel(cores = detectCores())
+
+r <- 1000
+auc <- numeric(r)
+
+auc <- foreach(i = 1:r, .combine = c, .packages = c("xgboost", "ROCR"), 
+        .export = c("xs", "y", "hp", "bp")) %dopar% {
+          
+    # Bootstrap sampling
+    ind <- sample(nrow(xs), nrow(xs)*1.5, replace = TRUE)
+    train_xs <- xs[ind, ]
+    test_xs <- xs[-ind, ]
+    train_y <- y[ind]
+    test_y <- y[-ind]
+
+    # Create DMatrix for XGBoost
+    dtrain <- xgb.DMatrix(data = train_xs, label = train_y)
+    dtest <- xgb.DMatrix(data = test_xs, label = test_y)
     
-# get the mean of the hyperparamters(set) that was just run
-v_auc_mean[i] <- mean(auc_tuning)
+    # Train XGBoost model
+    xgbmdl <- xgb.train(params = hp, data = dtrain, nrounds = bp[["nrounds"]][1])
 
-
-
- BI <- which.max(v_auc_mean) #best hyperparameter index
-  best_AUC <- v_auc_mean[BI]
-  best_params <- rgrid[BI, ]
-  
-  # store the best hyperparameters and there val results
-  opt[j, 1] <- best_params[1, 1]
-  opt[j, 2] <- best_params[1, 2]
-  opt[j, 3] <- best_params[1, 3]
-  opt[j, 4] <- best_params[1, 4]
-  opt[j, 5] <- best_params[1, 5]
-  opt[j, 6] <- best_params[1, 6]
-  opt[j, 7] <- best_params[1, 7]
-  opt[j, 8] <- best_params[1, 8]
-  opt[j, 9] <- best_params[1, 9]
-  opt[j, 10] <- max(v_auc_mean)
+    # Prediction
+    phat <- predict(xgbmdl, dtest)
+    
+    # Calculate AUC
+    pred_roc <- prediction(phat, test_y)
+    auc_value <- performance(pred_roc, "auc")@y.values[[1]]
+    auc_value
 }
 
-  # One-hot coding using R's `model.matrix` for the final test
-  md_x <- model.matrix(~.+0, data = md[, -which(names(md) == "y")]) 
-  md_y <- md$y
- 
-  test_x <- model.matrix(~.+0, data = test[, -which(names(test) == "y")])
-  test_y <- test$y
-  
-  # Preparing efficient matrix for the final test
-  xgb_md <- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test <- xgb.DMatrix(data = test_x, label = test_y)
-  
-  
-  
-  
-  # Train the model with model data
-  xgb_mt <- xgb.train(params = list(objective = "binary:logistic"),
-                         data = xgb_md, 
-                         nrounds = opt[j ,1],
-                         max_depth = opt[j ,2],
-                         eta = opt[j ,3], 
-                         subsample = opt[j ,4],
-                         colsample_bytree = opt[j ,5],
-                         gamma = opt[j ,6],
-                         min_child_weight = opt[j ,7],
-                         alpha = opt[j ,8],
-                         lambda = opt[j ,9],
-                         early_stopping_rounds = esr,
-                         eval_metric = "auc",
-                         watchlist = list(train = xgb_md, val = xgb_test),
-                         verbose = FALSE,
-                         nthread = 3
-  )
+# Stop the parallel backend
+stopImplicitCluster()
 
-  
-# Predicting on the test set
-phat <- predict(xgb_mt, xgb_test, type = "prob")
-
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test_y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc_t <- auc_ROCR@y.values[[1]]
-
-
-# store the test auc
-opt[j, 11] <- auc_t
-  
-}
-
-
-
-end_time <- Sys.time()
-
-elapsed_time <- end_time - start_time
-
-elapsed_time
- 
-
-
-```
-This code will index and assign the best hyper parameters from opt into a matrix called win. 
-
-NOTE: A weakness is that the test run is one split or rather one n run. this means it is weak to a high standard deviation or variability in the models predicition. This issue starts to dissapear as we can run the model more times (n) as we then can look for similar hyper parameter sets and select based on there mean test scores. 
-
-This takes the top 50 percent of hyperparameters based on there test scores and puts them into a matrix named win
-```{r, warning=FALSE}
-
-th <- quantile(opt[,11], probs = 0.50)
-ind_opt <- which(opt[,11] >= th)
-
-win <- opt[ind_opt, ]
-win
-```
-
-This code is using bootstrapping and runs the best hyperparamters that we picked before. it tests the selected hyper parameters n times. since we are not tuning in it we can use all of the data in it.
-```{r, warning=FALSE}
-library(xgboost)
-library(ROCR)
-
-n <- 400
-w <- nrow(win)
-esr <- 10 # early stopping rounds
-
-#collums are hyper param set
-bs_results <- matrix(0, nrow = n, ncol = w)
-
-
-
-for (i in 1:n) {
-  for (j in 1:w){
-    auc <- c()
-  #cat("loops: ", i, j, "\r")
-  
-  # Initial Split
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  mdf<- data[ind, ]
-  test <- data[-ind, ]
-  
-  # One-hot coding using R's `model.matrix`
-  md_y <- mdf$y
-  test_y <- test$y
-  md_x <- model.matrix(~.+0, data = mdf[, -which(names(mdf) == "y")]) 
-  test_x <- model.matrix(~.+0, data = test[, -which(names(test) == "y")])
-  
-  # Preparing efficient matrix
-  xgb_md <- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test <- xgb.DMatrix(data = test_x, label = test_y)
-  
-  # Training and evaluating the model
-  xgb_m <- xgb.train(params = list(objective = "binary:logistic"),
-                               data = xgb_md, 
-                               nrounds = win[j, 1],
-                               max_depth = win[j, 2],
-                               eta = win[j, 3], 
-                               subsample = win[j, 4],
-                               colsample_bytree = win[j, 5],
-                               gamma = win[j, 6],
-                               min_child_weight = win[j, 7],
-                               alpha = win[j, 8],
-                               lambda = win[j, 9],
-                               early_stopping_rounds = esr,
-                               eval_metric = "auc",
-                               watchlist = list(train = xgb_md, val = xgb_test),
-                               verbose = FALSE,
-                               nthread = 3
-                              
-  )
-  
-  # Predicting on the test set
-  phat <- predict(xgb_m, xgb_test, type = "prob")
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test_y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc <- auc_ROCR@y.values[[1]]
-  
-  # matrix with n rows and w collums. each collum is a hyper parameter
- bs_results[i, j] <- auc 
-}
-}
-```
-
-This code takes the colmeans of the matrix that gave our results. then we bind these results onto the win matrix for presentation. it also takes the index of the best run from before and saves the correlating hyperparameters into bh.
-```{r, warning=FALSE}
-bh_ind <- which.max(colMeans(bs_results))
-bh <- win[bh_ind, ]
-mean(bs_results[,bh_ind])
-cm <- as.vector(colMeans(bs_results))
-win <- cbind(win, av_ovr_n_runs=cm)
-```
-
-This is the final run. it uses bootstrapping and runs n times. This is mostly to do a final proof and present the auc 
-```{r, warning=FALSE}
-library(xgboost)
-library(ROCR)
-
-n <- 1000
-
-esr <- 10
-
- auc <- c()
-for (i in 1:n) {
-
-   
-  #cat("loops: ", i, "\r")
-  
-  # Initial Split This is bootstrapping
-  ind <- unique(sample(nrow(data), nrow(data), replace = TRUE))
-  mdf<- data[ind, ]
-  test <- data[-ind, ]
-  
-  # One-hot coding using R's `model.matrix`
-  md_y <- mdf$y
-  test_y <- test$y
-  md_x <- model.matrix(~.+0, data = mdf[, -which(names(mdf) == "y")]) 
-  test_x <- model.matrix(~.+0, data = test[, -which(names(test) == "y")])
-  
-  # Preparing efficient matrix
-  xgb_md <- xgb.DMatrix(data = md_x, label = md_y) 
-  xgb_test <- xgb.DMatrix(data = test_x, label = test_y)
-  
-  # Modeling with md
-  xgb_m <- xgb.train(params = list(objective = "binary:logistic"),
-                               data = xgb_md, 
-                               nrounds = bh[1],
-                               max_depth = bh[2],
-                               eta = bh[3], 
-                               subsample = bh[4],
-                               colsample_bytree = bh[5],
-                               gamma = bh[6],
-                               min_child_weight = bh[7],
-                               alpha = bh[8],
-                               lambda = bh[9],
-                               early_stopping_rounds = esr,
-                               eval_metric = "auc",
-                               watchlist = list(train = xgb_md, val = xgb_test),
-                               verbose = FALSE,
-                               nthread = 3
-                              
-  )
-  
-  # Predicting on the test set
-  phat <- predict(xgb_m, xgb_test, type = "prob")
-  
-  # Calculating the AUC
-  pred_rocr <- prediction(phat, test_y)
-  auc_ROCR <- performance(pred_rocr, measure = "auc")
-  auc[i] <- auc_ROCR@y.values[[1]]
-}
- 
- mean(auc)
- sd(auc)
-```
-
-This presents the mean and 95% CI of the model runs
-Note: we are representing individual observations/model runs so we use SD not SE.   
-                             
-```{r, warning=FALSE}
+# auc now contains the AUC scores
+mean(auc)
 
 # plot auc and 95% CI of the runs
 plot(auc, col="red")
@@ -450,5 +971,57 @@ abline(a = mean(auc)+1.96*sd(auc), b = 0, col = "green", lwd = 3)
 
 ```
 
-If we are finding a threshold he then need to pay attention to the watchlist outputs and tune nrounds accordingly. 
-also note i am use early stopping rounds in my loops.
+Overall the results dont seem amazing compared to random forest. I would point reduced run amount for especialy running r1. This would've let us get a better final auc. also keep in mind our grid was crazy small like under 3000 rows. I think with a better grid we can definitly improve. I also dont know how i feel about the method i used to reduce grid size. Im going to look more into methodology for selecting final set of hyperparameter aswell.
+
+```{r}
+r <- 1000 # Number of bootstrap iterations
+best_thresholds <- numeric(r) # To store the best threshold per iteration
+j_stats <- numeric(r) # To store the max J statistic per iteration
+
+for(i in 1:r) {
+    # Bootstrap sampling
+    ind <- sample(nrow(xs), size = nrow(xs), replace = TRUE)
+    train_xs <- xs[ind, ]
+    test_xs <- xs[-ind, ]
+    train_y <- y[ind]
+    test_y <- y[-ind]
+    
+    # Create DMatrix objects
+    dtrain <- xgb.DMatrix(data = train_xs, label = train_y)
+    dtest <- xgb.DMatrix(data = test_xs, label = test_y)
+    
+    # Train the model
+    xgbmdl <- xgb.train(params = hp, data = dtrain, nrounds = bp[["nrounds"]][1])
+    
+    # Predictions
+    phat <- predict(xgbmdl, dtest)
+    
+    # ROCR predictions object
+    pred <- prediction(phat, test_y)
+    
+    # Calculate performance measures
+    perf <- performance(pred, measure = "sens", x.measure = "spec")
+    sensitivity <- slot(perf, "y.values")[[1]]
+    specificity <- slot(perf, "x.values")[[1]]
+    thresholds <- slot(perf, "alpha.values")[[1]]
+    j_stat <- sensitivity + specificity - 1
+    
+    # Find the best threshold (maximizing J statistic)
+    best_idx <- which.max(j_stat)
+    best_thresholds[i] <- thresholds[best_idx]
+    j_stats[i] <- j_stat[best_idx]
+}
+
+# Calculate and print the average of the best thresholds
+avg_best_threshold <- mean(best_thresholds)
+cat("Average Best Threshold:", avg_best_threshold, "\n")
+
+# Plot the distribution of max J statistics for each iteration
+plot(j_stats, type = "h", col = "blue", xlab = "Iteration", ylab = "Max J Statistic",
+     main = "Distribution of Max J Statistics Across Bootstrap Iterations")
+abline(h = mean(j_stats), col = "red", lwd = 2) # Mean J Stat line
+
+```
+
+
+JMJ
