@@ -86,3 +86,13 @@ put jstat on xgb2.
 Fix the typos in xgboost at the end
 
 shun all start up messages etc
+
+feature importance for xgboost not just rf/lm
+
+make all printing parameters inf for each collum
+
+use glimpse not str
+
+the data you are feeding lm rf cart etc
+
+print out confusion table
