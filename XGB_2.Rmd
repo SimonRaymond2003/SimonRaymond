@@ -289,16 +289,17 @@ Now lets actually run our algorithm
 
 ```{r}
 grid <- expand.grid(
-  eta = seq(0.1, 0.1, by = 0), 
-  max_depth = seq(16, 20, by = 4),
-  min_child_weight = seq(1, 1, by = 1), 
-  subsample = seq(0.8, 0.8, by = 0), 
-  colsample_bytree = seq(1, 1, by = 0),
-  lambda = seq(4, 10, by = 2), 
-  alpha = seq(0, 3, by = 1), 
-  gamma = seq(0, 5, by = 1), 
-  nrounds = c(50, 100, 125, 150) 
+  eta = seq(0.09, 0.11, by = 0.01), 
+  max_depth = seq(1, 10, by = 9),  
+  min_child_weight = seq(1, 19, by = 4),  
+  subsample = seq(0.6, 0.9, by = 0.1), 
+  colsample_bytree = seq(1, 1, by = 0), 
+  lambda = seq(4, 12, by = 4), 
+  alpha = seq(0, 4, by = 2),  
+  gamma = seq(0, 6, by = 2),  
+  nrounds = c(200, 300)  
 )
+
 ```
 
 ```{r}
@@ -310,7 +311,7 @@ rgrid <- grid[ind, ]
 ```
 
 ```{r}
-v <- 250
+v <- 200
 
 # Call the modified run_xgb function
 vr <- run_xgb(xs, y, rgrid, v)
@@ -439,3 +440,34 @@ hist(j_stats, col = "blue", xlab = "Max J Statistic", ylab = "Frequency",
 abline(v = mean(j_stats), col = "red", lwd = 2) # Mean J Stat line
 
 ```
+
+# Confusion table and ROC
+
+for now this is one run and unreliable but we can loop it and do confidence intervals
+
+```{r}
+    ind <- sample(nrow(xs), size = nrow(xs), replace = TRUE)
+    train_xs <- xs[ind, ]
+    test_xs <- xs[-ind, ]
+    train_y <- y[ind]
+    test_y <- y[-ind]
+    dtrain <- xgb.DMatrix(data = train_xs, label = train_y)
+    dtest <- xgb.DMatrix(data = test_xs, label = test_y)
+
+xgbmdl_final <- xgb.train(params = params, data = dtrain, nrounds = best_hp$nrounds, verbose = 0)
+
+final_phat <- predict(xgbmdl_final, dtest)
+
+final_predicted_classes <- ifelse(final_phat > avg_best_threshold, 1, 0)
+
+final_test_y_binary <- ifelse(test_y > avg_best_threshold, 1, 0) # Adjusting to binary if not already
+conf_matrix <- table(Predicted = final_predicted_classes, Actual = final_test_y_binary)
+print(conf_matrix)
+
+final_pred_rocr <- prediction(final_phat, test_y)
+final_perf_rocr <- performance(final_pred_rocr, "tpr", "fpr")
+plot(final_perf_rocr, colorize = TRUE, main = "ROC Curve")
+abline(a = 0, b = 1, lty = 2) # Reference line
+
+```
+
