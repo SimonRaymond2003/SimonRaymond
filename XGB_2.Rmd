@@ -36,7 +36,7 @@ The basic idea of this is to run each rgrid hyperparam a bunch of times with boo
 
 I have ran the set up in this the same as in the other xgboost method
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 suppressPackageStartupMessages({
     library(plotly)
     library(readr)
@@ -106,7 +106,7 @@ y <- sdata$Survived
 
 As a reminder here is the data
 ```{r}
-str(data)
+glimpse(data)
 anyNA(data)
 ```
 
@@ -289,15 +289,15 @@ Now lets actually run our algorithm
 
 ```{r}
 grid <- expand.grid(
-  eta = seq(0.09, 0.11, by = 0.01), 
+  eta = seq(0.07, 0.10, by = 0.01), 
   max_depth = seq(1, 10, by = 9),  
   min_child_weight = seq(1, 19, by = 4),  
-  subsample = seq(0.6, 0.9, by = 0.1), 
-  colsample_bytree = seq(1, 1, by = 0), 
-  lambda = seq(4, 12, by = 4), 
+  subsample = seq(0.6, 0.8, by = 0.1), 
+  colsample_bytree = seq(0.8, 1, by = 0.1), 
+  lambda = seq(0, 12, by = 4), 
   alpha = seq(0, 4, by = 2),  
-  gamma = seq(0, 6, by = 2),  
-  nrounds = c(200, 300)  
+  gamma = seq(0, 2, by = 2),  
+  nrounds = c(150, 200, 300)  
 )
 
 ```
@@ -310,7 +310,7 @@ ind <- sample(nrow(grid), nrow(grid)*(n/nrow(grid)), replace = FALSE)
 rgrid <- grid[ind, ]
 ```
 
-```{r}
+```{r, warning=FALSE}
 v <- 200
 
 # Call the modified run_xgb function
@@ -443,8 +443,8 @@ abline(v = mean(j_stats), col = "red", lwd = 2) # Mean J Stat line
 
 # Confusion table and ROC
 
-for now this is one run and unreliable but we can loop it and do confidence intervals
-
+For now this is one run and unreliable but we can loop it and do confidence intervals
+swap this confusion table around
 ```{r}
     ind <- sample(nrow(xs), size = nrow(xs), replace = TRUE)
     train_xs <- xs[ind, ]
@@ -469,5 +469,69 @@ final_perf_rocr <- performance(final_pred_rocr, "tpr", "fpr")
 plot(final_perf_rocr, colorize = TRUE, main = "ROC Curve")
 abline(a = 0, b = 1, lty = 2) # Reference line
 
+```
+Avg confusion table. we should do a CI later
+
+```{r}
+# Initialize storage for aggregated confusion matrix totals
+conf_mat_totals <- matrix(0, nrow = 2, ncol = 2)
+colnames(conf_mat_totals) <- c("Predicted_1", "Predicted_0")
+rownames(conf_mat_totals) <- c("Actual_1", "Actual_0")
+
+# Initialize lists to store TPR and FPR values for each bootstrap iteration
+all_tpr <- list()
+all_fpr <- list()
+
+for(i in 1:1000) {
+  ind <- sample(nrow(xs), size = nrow(xs), replace = TRUE)
+  train_xs <- xs[ind, ]
+  test_xs <- xs[-ind, ]
+  train_y <- y[ind]
+  test_y <- y[-ind]
+  dtrain <- xgb.DMatrix(data = train_xs, label = train_y)
+  dtest <- xgb.DMatrix(data = test_xs, label = test_y)
+
+  xgbmdl_final <- xgb.train(params = params, data = dtrain, nrounds = best_hp$nrounds, verbose = 0)
+
+  final_phat <- predict(xgbmdl_final, dtest)
+  final_predicted_classes <- ifelse(final_phat > avg_best_threshold, 1, 0)
+  final_test_y_binary <- ifelse(test_y > avg_best_threshold, 1, 0)
+
+  conf_matrix <- table(Predicted = factor(final_predicted_classes, levels = c(1, 0)), Actual = factor(final_test_y_binary, levels = c(1, 0)))
+  conf_mat_totals <- conf_mat_totals + as.matrix(conf_matrix)
+
+  final_pred_rocr <- prediction(final_phat, test_y)
+  final_perf_rocr <- performance(final_pred_rocr, "tpr", "fpr")
+
+  # Store TPR and FPR values for this iteration
+  all_tpr[[i]] <- final_perf_rocr@y.values[[1]]
+  all_fpr[[i]] <- final_perf_rocr@x.values[[1]]
+}
+
+# Calculate the average confusion matrix
+avg_conf_matrix <- conf_mat_totals / 1000
+print(avg_conf_matrix)
+```
+
+This doesnt have a CI but its a average
+
+```{r, warning=FALSE}
+# Determine common FPR thresholds for interpolation (simplified approach)
+common_fpr_thresholds <- seq(0, 1, length.out = 100)
+
+# Initialize vectors to hold averaged TPR values for these common thresholds
+averaged_tpr <- numeric(length(common_fpr_thresholds))
+
+# Interpolate TPR values at common FPR thresholds for each bootstrap iteration and average them
+for (i in seq_along(common_fpr_thresholds)) {
+    tpr_values_at_threshold <- sapply(seq_along(all_tpr), function(j) {
+        approx(all_fpr[[j]], all_tpr[[j]], xout = common_fpr_thresholds[i])$y
+    })
+    averaged_tpr[i] <- mean(tpr_values_at_threshold, na.rm = TRUE)
+}
+
+# Plot the averaged ROC curve
+plot(common_fpr_thresholds, averaged_tpr, type = 'l', col = 'blue', xlab = 'False Positive Rate', ylab = 'True Positive Rate', main = 'Averaged ROC Curve across Bootstrap Samples')
+abline(a = 0, b = 1, lty = 2, col = 'red') # Reference line
 ```
 
