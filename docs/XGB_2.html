@@ -655,22 +655,22 @@ method</p>
 <div id="validating" class="section level3">
 <h3>Validating</h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">seq</span>(<span class="fl">0.07</span>, <span class="fl">0.10</span>, <span class="at">by =</span> <span class="fl">0.01</span>), </span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">max_depth =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="dv">9</span>),  </span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">min_child_weight =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">19</span>, <span class="at">by =</span> <span class="dv">4</span>),  </span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">subsample =</span> <span class="fu">seq</span>(<span class="fl">0.6</span>, <span class="fl">0.8</span>, <span class="at">by =</span> <span class="fl">0.1</span>), </span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">colsample_bytree =</span> <span class="fu">seq</span>(<span class="fl">0.8</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.1</span>), </span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">12</span>, <span class="at">by =</span> <span class="dv">4</span>), </span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">4</span>, <span class="at">by =</span> <span class="dv">2</span>),  </span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="at">by =</span> <span class="dv">2</span>),  </span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">nrounds =</span> <span class="fu">c</span>(<span class="dv">150</span>, <span class="dv">200</span>, <span class="dv">300</span>)  </span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">eta =</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.10</span>, <span class="at">by =</span> <span class="fl">0.0</span>), </span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">max_depth =</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">16</span>, <span class="at">by =</span> <span class="dv">3</span>),  </span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">min_child_weight =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">0</span>),  </span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">subsample =</span> <span class="fu">seq</span>(<span class="fl">0.7</span>, <span class="fl">0.9</span>, <span class="at">by =</span> <span class="fl">0.1</span>), </span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">colsample_bytree =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="dv">0</span>), </span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">4</span>, <span class="at">by =</span> <span class="dv">1</span>), </span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">4</span>, <span class="at">by =</span> <span class="dv">1</span>),  </span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="at">by =</span> <span class="dv">1</span>),  </span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">nrounds =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">150</span>, <span class="dv">200</span>)  </span>
 <span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>)</span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>conf_lev <span class="ot">&lt;-</span> .<span class="dv">95</span></span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>num_max <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="co"># Define number around the maximum</span></span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>conf_lev)<span class="sc">/</span><span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>num_max<span class="sc">/</span><span class="fu">nrow</span>(grid))</span>
 <span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(grid), <span class="fu">nrow</span>(grid)<span class="sc">*</span>(n<span class="sc">/</span><span class="fu">nrow</span>(grid)), <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>rgrid <span class="ot">&lt;-</span> grid[ind, ]</span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">400</span></span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># Call the modified run_xgb function</span></span>
 <span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>vr <span class="ot">&lt;-</span> <span class="fu">run_xgb</span>(xs, y, rgrid, v)</span>
@@ -679,20 +679,20 @@ method</p>
 <pre><code>## # A tibble: 6 × 10
 ##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
 ##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0.07        10                5       0.6              1        8     2     0
-## 2  0.1         10               13       0.7              1        4     4     2
-## 3  0.08        10                5       0.7              1       12     2     0
-## 4  0.08         1                5       0.7              0.8      8     2     2
-## 5  0.08        10               17       0.7              1        0     2     0
-## 6  0.09        10               13       0.8              0.9      4     0     0
+## 1   0.1        16                1       0.7                1      1     0     2
+## 2   0.1        13                1       0.8                1      4     3     1
+## 3   0.1        16                1       0.7                1      0     1     0
+## 4   0.1        10                1       0.8                1      4     4     2
+## 5   0.1        16                1       0.9                1      2     4     1
+## 6   0.1        13                1       0.9                1      3     3     1
 ##   nrounds AUC_Mean
 ##     &lt;dbl&gt;    &lt;dbl&gt;
-## 1     200    0.877
-## 2     200    0.862
-## 3     150    0.877
-## 4     150    0.861
-## 5     300    0.866
-## 6     200    0.875</code></pre>
+## 1     200    0.882
+## 2     150    0.881
+## 3     150    0.881
+## 4     100    0.870
+## 5     100    0.878
+## 6     150    0.880</code></pre>
 </div>
 <div id="testing" class="section level3">
 <h3>Testing</h3>
@@ -708,20 +708,20 @@ method</p>
 <pre><code>## # A tibble: 6 × 11
 ##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
 ##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0.09        10                1       0.7              1       12     0     0
-## 2  0.07        10                1       0.8              1        4     2     0
-## 3  0.08        10                1       0.8              0.8     12     0     0
-## 4  0.07        10                1       0.8              1       12     0     0
-## 5  0.09        10                1       0.8              0.9      4     2     0
-## 6  0.07        10                1       0.7              0.8      8     2     0
+## 1   0.1        16                1       0.7                1      3     2     0
+## 2   0.1        16                1       0.8                1      3     1     0
+## 3   0.1        13                1       0.8                1      3     1     0
+## 4   0.1        10                1       0.8                1      4     0     1
+## 5   0.1        13                1       0.7                1      1     2     1
+## 6   0.1        16                1       0.7                1      3     2     0
 ##   nrounds AUC_Mean mean_auc
 ##     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1     150    0.888    0.884
-## 2     300    0.887    0.883
-## 3     200    0.886    0.884
-## 4     150    0.886    0.884
-## 5     150    0.886    0.884
-## 6     200    0.886    0.883</code></pre>
+## 1     200    0.886    0.884
+## 2     150    0.885    0.883
+## 3     150    0.885    0.883
+## 4     200    0.885    0.883
+## 5     200    0.885    0.883
+## 6     150    0.885    0.884</code></pre>
 </div>
 </div>
 </div>
@@ -735,18 +735,18 @@ method</p>
 <pre><code>## # A tibble: 1 × 11
 ##     eta max_depth min_child_weight subsample colsample_bytree lambda alpha gamma
 ##   &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0.09        10                1       0.7              0.9     12     0     0
+## 1   0.1        10                1       0.7                1      4     1     0
 ##   nrounds AUC_Mean mean_auc
 ##     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1     150    0.884    0.886</code></pre>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+## 1     150    0.883    0.884</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">1500</span></span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>auc <span class="ot">&lt;-</span> <span class="fu">test_auc</span>(xs, y, best_hp, r)</span>
 <span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a></span>
 <span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>mauc <span class="ot">&lt;-</span> <span class="fu">mean</span>(auc)</span>
 <span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>mauc</span></code></pre></div>
-<pre><code>## [1] 0.8836899</code></pre>
+<pre><code>## [1] 0.8823718</code></pre>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">sd</span>(auc)</span></code></pre></div>
-<pre><code>## [1] 0.01684275</code></pre>
+<pre><code>## [1] 0.01657016</code></pre>
 <p>As we can see our results are much better even with a small grid</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">plot</span>(auc, <span class="at">col=</span><span class="st">&quot;red&quot;</span>)</span>
 <span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">mean</span>(auc), <span class="at">b =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
@@ -813,7 +813,7 @@ metric if you want</p>
 <span id="cb23-53"><a href="#cb23-53" tabindex="-1"></a><span class="co"># Calculate and print the average of the best thresholds</span></span>
 <span id="cb23-54"><a href="#cb23-54" tabindex="-1"></a>avg_best_threshold <span class="ot">&lt;-</span> <span class="fu">mean</span>(best_thresholds)</span>
 <span id="cb23-55"><a href="#cb23-55" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Average Best Threshold:&quot;</span>, avg_best_threshold, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Average Best Threshold: 0.402199</code></pre>
+<pre><code>## Average Best Threshold: 0.4043697</code></pre>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="co"># Plot the distribution of max J statistics for each iteration</span></span>
 <span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a><span class="fu">hist</span>(j_stats, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Max J Statistic&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Frequency&quot;</span>,</span>
 <span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Distribution of Max J Statistics Across Bootstrap Iterations&quot;</span>)</span>
@@ -822,95 +822,67 @@ metric if you want</p>
 </div>
 <div id="confusion-table-and-roc" class="section level1">
 <h1>Confusion table and ROC</h1>
-<p>For now this is one run and unreliable but we can loop it and do
-confidence intervals swap this confusion table around</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="at">size =</span> <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>    train_xs <span class="ot">&lt;-</span> xs[ind, ]</span>
-<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>    test_xs <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
-<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>    train_y <span class="ot">&lt;-</span> y[ind]</span>
-<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>    test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
-<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>    dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_xs, <span class="at">label =</span> train_y)</span>
-<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>    dtest <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_xs, <span class="at">label =</span> test_y)</span>
-<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a></span>
-<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a>xgbmdl_final <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> dtrain, <span class="at">nrounds =</span> best_hp<span class="sc">$</span>nrounds, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a></span>
-<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a>final_phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgbmdl_final, dtest)</span>
-<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a></span>
-<span id="cb26-13"><a href="#cb26-13" tabindex="-1"></a>final_predicted_classes <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(final_phat <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb26-14"><a href="#cb26-14" tabindex="-1"></a></span>
-<span id="cb26-15"><a href="#cb26-15" tabindex="-1"></a>final_test_y_binary <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(test_y <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>) <span class="co"># Adjusting to binary if not already</span></span>
-<span id="cb26-16"><a href="#cb26-16" tabindex="-1"></a>conf_matrix <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="at">Predicted =</span> final_predicted_classes, <span class="at">Actual =</span> final_test_y_binary)</span>
-<span id="cb26-17"><a href="#cb26-17" tabindex="-1"></a><span class="fu">print</span>(conf_matrix)</span></code></pre></div>
-<pre><code>##          Actual
-## Predicted   0   1
-##         0 174  21
-##         1  34  99</code></pre>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>final_pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(final_phat, test_y)</span>
-<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>final_perf_rocr <span class="ot">&lt;-</span> <span class="fu">performance</span>(final_pred_rocr, <span class="st">&quot;tpr&quot;</span>, <span class="st">&quot;fpr&quot;</span>)</span>
-<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a><span class="fu">plot</span>(final_perf_rocr, <span class="at">colorize =</span> <span class="cn">TRUE</span>, <span class="at">main =</span> <span class="st">&quot;ROC Curve&quot;</span>)</span>
-<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="co"># Reference line</span></span></code></pre></div>
-<p><img src="XGB_2_files/figure-html/unnamed-chunk-15-1.png" width="672" />
-Avg confusion table. we should do a CI later</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="co"># Initialize storage for aggregated confusion matrix totals</span></span>
-<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>conf_mat_totals <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
-<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a><span class="fu">colnames</span>(conf_mat_totals) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Predicted_1&quot;</span>, <span class="st">&quot;Predicted_0&quot;</span>)</span>
-<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="fu">rownames</span>(conf_mat_totals) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Actual_1&quot;</span>, <span class="st">&quot;Actual_0&quot;</span>)</span>
-<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a></span>
-<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a><span class="co"># Initialize lists to store TPR and FPR values for each bootstrap iteration</span></span>
-<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>all_tpr <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>all_fpr <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a></span>
-<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>) {</span>
-<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="at">size =</span> <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>  train_xs <span class="ot">&lt;-</span> xs[ind, ]</span>
-<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>  test_xs <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
-<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a>  train_y <span class="ot">&lt;-</span> y[ind]</span>
-<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a>  test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
-<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a>  dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_xs, <span class="at">label =</span> train_y)</span>
-<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a>  dtest <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_xs, <span class="at">label =</span> test_y)</span>
-<span id="cb29-18"><a href="#cb29-18" tabindex="-1"></a></span>
-<span id="cb29-19"><a href="#cb29-19" tabindex="-1"></a>  xgbmdl_final <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> dtrain, <span class="at">nrounds =</span> best_hp<span class="sc">$</span>nrounds, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb29-20"><a href="#cb29-20" tabindex="-1"></a></span>
-<span id="cb29-21"><a href="#cb29-21" tabindex="-1"></a>  final_phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgbmdl_final, dtest)</span>
-<span id="cb29-22"><a href="#cb29-22" tabindex="-1"></a>  final_predicted_classes <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(final_phat <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb29-23"><a href="#cb29-23" tabindex="-1"></a>  final_test_y_binary <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(test_y <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb29-24"><a href="#cb29-24" tabindex="-1"></a></span>
-<span id="cb29-25"><a href="#cb29-25" tabindex="-1"></a>  conf_matrix <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="at">Predicted =</span> <span class="fu">factor</span>(final_predicted_classes, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>)), <span class="at">Actual =</span> <span class="fu">factor</span>(final_test_y_binary, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>)))</span>
-<span id="cb29-26"><a href="#cb29-26" tabindex="-1"></a>  conf_mat_totals <span class="ot">&lt;-</span> conf_mat_totals <span class="sc">+</span> <span class="fu">as.matrix</span>(conf_matrix)</span>
-<span id="cb29-27"><a href="#cb29-27" tabindex="-1"></a></span>
-<span id="cb29-28"><a href="#cb29-28" tabindex="-1"></a>  final_pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(final_phat, test_y)</span>
-<span id="cb29-29"><a href="#cb29-29" tabindex="-1"></a>  final_perf_rocr <span class="ot">&lt;-</span> <span class="fu">performance</span>(final_pred_rocr, <span class="st">&quot;tpr&quot;</span>, <span class="st">&quot;fpr&quot;</span>)</span>
-<span id="cb29-30"><a href="#cb29-30" tabindex="-1"></a></span>
-<span id="cb29-31"><a href="#cb29-31" tabindex="-1"></a>  <span class="co"># Store TPR and FPR values for this iteration</span></span>
-<span id="cb29-32"><a href="#cb29-32" tabindex="-1"></a>  all_tpr[[i]] <span class="ot">&lt;-</span> final_perf_rocr<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
-<span id="cb29-33"><a href="#cb29-33" tabindex="-1"></a>  all_fpr[[i]] <span class="ot">&lt;-</span> final_perf_rocr<span class="sc">@</span>x.values[[<span class="dv">1</span>]]</span>
-<span id="cb29-34"><a href="#cb29-34" tabindex="-1"></a>}</span>
-<span id="cb29-35"><a href="#cb29-35" tabindex="-1"></a></span>
-<span id="cb29-36"><a href="#cb29-36" tabindex="-1"></a><span class="co"># Calculate the average confusion matrix</span></span>
-<span id="cb29-37"><a href="#cb29-37" tabindex="-1"></a>avg_conf_matrix <span class="ot">&lt;-</span> conf_mat_totals <span class="sc">/</span> <span class="dv">1000</span></span>
-<span id="cb29-38"><a href="#cb29-38" tabindex="-1"></a><span class="fu">print</span>(avg_conf_matrix)</span></code></pre></div>
+<p>Avg confusion table. we should do a CI later</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="co"># Initialize storage for aggregated confusion matrix totals</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>conf_mat_totals <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="fu">colnames</span>(conf_mat_totals) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Predicted_1&quot;</span>, <span class="st">&quot;Predicted_0&quot;</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="fu">rownames</span>(conf_mat_totals) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Actual_1&quot;</span>, <span class="st">&quot;Actual_0&quot;</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co"># Initialize lists to store TPR and FPR values for each bootstrap iteration</span></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>all_tpr <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>all_fpr <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>) {</span>
+<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(xs), <span class="at">size =</span> <span class="fu">nrow</span>(xs), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a>  train_xs <span class="ot">&lt;-</span> xs[ind, ]</span>
+<span id="cb26-13"><a href="#cb26-13" tabindex="-1"></a>  test_xs <span class="ot">&lt;-</span> xs[<span class="sc">-</span>ind, ]</span>
+<span id="cb26-14"><a href="#cb26-14" tabindex="-1"></a>  train_y <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb26-15"><a href="#cb26-15" tabindex="-1"></a>  test_y <span class="ot">&lt;-</span> y[<span class="sc">-</span>ind]</span>
+<span id="cb26-16"><a href="#cb26-16" tabindex="-1"></a>  dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> train_xs, <span class="at">label =</span> train_y)</span>
+<span id="cb26-17"><a href="#cb26-17" tabindex="-1"></a>  dtest <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> test_xs, <span class="at">label =</span> test_y)</span>
+<span id="cb26-18"><a href="#cb26-18" tabindex="-1"></a></span>
+<span id="cb26-19"><a href="#cb26-19" tabindex="-1"></a>  xgbmdl_final <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(<span class="at">params =</span> params, <span class="at">data =</span> dtrain, <span class="at">nrounds =</span> best_hp<span class="sc">$</span>nrounds, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb26-20"><a href="#cb26-20" tabindex="-1"></a></span>
+<span id="cb26-21"><a href="#cb26-21" tabindex="-1"></a>  final_phat <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgbmdl_final, dtest)</span>
+<span id="cb26-22"><a href="#cb26-22" tabindex="-1"></a>  final_predicted_classes <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(final_phat <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" tabindex="-1"></a>  final_test_y_binary <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(test_y <span class="sc">&gt;</span> avg_best_threshold, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb26-24"><a href="#cb26-24" tabindex="-1"></a></span>
+<span id="cb26-25"><a href="#cb26-25" tabindex="-1"></a>  conf_matrix <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="at">Predicted =</span> <span class="fu">factor</span>(final_predicted_classes, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>)), <span class="at">Actual =</span> <span class="fu">factor</span>(final_test_y_binary, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>)))</span>
+<span id="cb26-26"><a href="#cb26-26" tabindex="-1"></a>  conf_mat_totals <span class="ot">&lt;-</span> conf_mat_totals <span class="sc">+</span> <span class="fu">as.matrix</span>(conf_matrix)</span>
+<span id="cb26-27"><a href="#cb26-27" tabindex="-1"></a></span>
+<span id="cb26-28"><a href="#cb26-28" tabindex="-1"></a>  final_pred_rocr <span class="ot">&lt;-</span> <span class="fu">prediction</span>(final_phat, test_y)</span>
+<span id="cb26-29"><a href="#cb26-29" tabindex="-1"></a>  final_perf_rocr <span class="ot">&lt;-</span> <span class="fu">performance</span>(final_pred_rocr, <span class="st">&quot;tpr&quot;</span>, <span class="st">&quot;fpr&quot;</span>)</span>
+<span id="cb26-30"><a href="#cb26-30" tabindex="-1"></a></span>
+<span id="cb26-31"><a href="#cb26-31" tabindex="-1"></a>  <span class="co"># Store TPR and FPR values for this iteration</span></span>
+<span id="cb26-32"><a href="#cb26-32" tabindex="-1"></a>  all_tpr[[i]] <span class="ot">&lt;-</span> final_perf_rocr<span class="sc">@</span>y.values[[<span class="dv">1</span>]]</span>
+<span id="cb26-33"><a href="#cb26-33" tabindex="-1"></a>  all_fpr[[i]] <span class="ot">&lt;-</span> final_perf_rocr<span class="sc">@</span>x.values[[<span class="dv">1</span>]]</span>
+<span id="cb26-34"><a href="#cb26-34" tabindex="-1"></a>}</span>
+<span id="cb26-35"><a href="#cb26-35" tabindex="-1"></a></span>
+<span id="cb26-36"><a href="#cb26-36" tabindex="-1"></a><span class="co"># Calculate the average confusion matrix</span></span>
+<span id="cb26-37"><a href="#cb26-37" tabindex="-1"></a>avg_conf_matrix <span class="ot">&lt;-</span> conf_mat_totals <span class="sc">/</span> <span class="dv">1000</span></span>
+<span id="cb26-38"><a href="#cb26-38" tabindex="-1"></a><span class="fu">print</span>(avg_conf_matrix)</span></code></pre></div>
 <pre><code>##          Predicted_1 Predicted_0
-## Actual_1      97.456      29.009
-## Actual_0      28.354     173.010</code></pre>
+## Actual_1      96.271      28.221
+## Actual_0      29.513     173.437</code></pre>
 <p>This doesnt have a CI but its a average</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co"># Determine common FPR thresholds for interpolation (simplified approach)</span></span>
-<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>common_fpr_thresholds <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
-<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="co"># Initialize vectors to hold averaged TPR values for these common thresholds</span></span>
-<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>averaged_tpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(common_fpr_thresholds))</span>
-<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a></span>
-<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a><span class="co"># Interpolate TPR values at common FPR thresholds for each bootstrap iteration and average them</span></span>
-<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(common_fpr_thresholds)) {</span>
-<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a>    tpr_values_at_threshold <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq_along</span>(all_tpr), <span class="cf">function</span>(j) {</span>
-<span id="cb31-10"><a href="#cb31-10" tabindex="-1"></a>        <span class="fu">approx</span>(all_fpr[[j]], all_tpr[[j]], <span class="at">xout =</span> common_fpr_thresholds[i])<span class="sc">$</span>y</span>
-<span id="cb31-11"><a href="#cb31-11" tabindex="-1"></a>    })</span>
-<span id="cb31-12"><a href="#cb31-12" tabindex="-1"></a>    averaged_tpr[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(tpr_values_at_threshold, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb31-13"><a href="#cb31-13" tabindex="-1"></a>}</span>
-<span id="cb31-14"><a href="#cb31-14" tabindex="-1"></a></span>
-<span id="cb31-15"><a href="#cb31-15" tabindex="-1"></a><span class="co"># Plot the averaged ROC curve</span></span>
-<span id="cb31-16"><a href="#cb31-16" tabindex="-1"></a><span class="fu">plot</span>(common_fpr_thresholds, averaged_tpr, <span class="at">type =</span> <span class="st">&#39;l&#39;</span>, <span class="at">col =</span> <span class="st">&#39;blue&#39;</span>, <span class="at">xlab =</span> <span class="st">&#39;False Positive Rate&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;True Positive Rate&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Averaged ROC Curve across Bootstrap Samples&#39;</span>)</span>
-<span id="cb31-17"><a href="#cb31-17" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&#39;red&#39;</span>) <span class="co"># Reference line</span></span></code></pre></div>
-<p><img src="XGB_2_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="co"># Determine common FPR thresholds for interpolation (simplified approach)</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>common_fpr_thresholds <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="co"># Initialize vectors to hold averaged TPR values for these common thresholds</span></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a>averaged_tpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(common_fpr_thresholds))</span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="co"># Interpolate TPR values at common FPR thresholds for each bootstrap iteration and average them</span></span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(common_fpr_thresholds)) {</span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a>    tpr_values_at_threshold <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq_along</span>(all_tpr), <span class="cf">function</span>(j) {</span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a>        <span class="fu">approx</span>(all_fpr[[j]], all_tpr[[j]], <span class="at">xout =</span> common_fpr_thresholds[i])<span class="sc">$</span>y</span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a>    })</span>
+<span id="cb28-12"><a href="#cb28-12" tabindex="-1"></a>    averaged_tpr[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(tpr_values_at_threshold, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-13"><a href="#cb28-13" tabindex="-1"></a>}</span>
+<span id="cb28-14"><a href="#cb28-14" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" tabindex="-1"></a><span class="co"># Plot the averaged ROC curve</span></span>
+<span id="cb28-16"><a href="#cb28-16" tabindex="-1"></a><span class="fu">plot</span>(common_fpr_thresholds, averaged_tpr, <span class="at">type =</span> <span class="st">&#39;l&#39;</span>, <span class="at">col =</span> <span class="st">&#39;blue&#39;</span>, <span class="at">xlab =</span> <span class="st">&#39;False Positive Rate&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;True Positive Rate&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Averaged ROC Curve across Bootstrap Samples&#39;</span>)</span>
+<span id="cb28-17"><a href="#cb28-17" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&#39;red&#39;</span>) <span class="co"># Reference line</span></span></code></pre></div>
+<p><img src="XGB_2_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 </div>
 
 
