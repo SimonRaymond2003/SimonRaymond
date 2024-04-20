@@ -6,19 +6,6 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
-    - text: "Titanic_XGBoosting"
-      href: Titanic_XGBoosting.html
-    - text: "Titanic_Adaboost"
-      href: Titanic_Adaboost.html
-    - text: "Titanic_Nnet"
-      href: Titanic_Nnet.html
-      name: SimonRaymond  
-    - text: "Titanic_LM_CART_and_RF"
-      href: Titanic_LM_CART_RF.html
-    - text: "XGB_2"
-      href: XGB_2.html
-    - text: "Speeds"
-      href: Speeds.html
       name: SimonRaymond
 output_dir: docs
 
