@@ -6,7 +6,7 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
-      name: SimonRaymond
+      name: SimonRaymondPage
 output_dir: docs
 
 
