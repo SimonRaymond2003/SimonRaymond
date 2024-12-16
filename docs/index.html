@@ -10,9 +10,8 @@
 
 
 
-<meta name="date" content="2024-01-28" />
 
-<title>My Work</title>
+<title>index.knit</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -30,9 +29,6 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 
 <style type="text/css">
@@ -211,69 +207,6 @@ $(document).ready(function () {
 
 
 
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
 
 </head>
 
@@ -281,16 +214,6 @@ div.tocify {
 
 
 <div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -310,9 +233,6 @@ div.tocify {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li>
-  <a href="about.html">About</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -325,20 +245,116 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">My Work</h1>
-<h4 class="date">2024-01-28</h4>
 
 </div>
 
 
-<p>My Work.</p>
-<p><a href="https://simonraymond2003.github.io/MachineLearning/"
-class="uri">https://simonraymond2003.github.io/MachineLearning/</a></p>
-
-
-
+<style>
+.main-container {
+ max-width: 1400px !important;
+ margin-left: auto;
+ margin-right: auto;
+ padding: 1em;
+}
+.custom-container {
+ display: grid;
+ grid-template-columns: 3fr 7fr;
+ gap: 2em;
+ width: 100%;
+}
+.side-panel {
+ background-color: #f8f9fa;
+ padding: 1.5em;
+ border-radius: 8px;
+ position: sticky;
+ top: 2em;
+ height: fit-content;
+ margin-left: 0;
+}
+.profile-img {
+ width: 100%;
+ border-radius: 8px;
+ margin-bottom: 1em;
+}
+.main-content {
+ padding-left: 1em;
+}
+.contact-info {
+ margin-top: 1em;
+}
+</style>
+<div class="custom-container">
+<div class="side-panel">
+<img src="Photo.jpeg" alt="Simon Raymond" class="profile-img">
+<div class="contact-info">
+<p><strong>Location</strong>: Halifax, Nova Scotia<br />
+<strong>Email</strong>: <a href="mailto:simon.raymond@smu.ca"
+class="email">simon.raymond@smu.ca</a><br />
+<strong>GitHub</strong>: <a
+href="https://github.com/SimonRaymond2003">SimonRaymond2003</a></p>
 </div>
 </div>
+<div class="main-content">
+<div id="about-me" class="section level3">
+<h3>About Me</h3>
+<p>I am finishing my fourth year of my undergraduate degree at Saint
+Mary’s University in Halifax NS. I am Majoring in Honors Economics. I
+specifically am interested in Econometrics and Machine learning and
+teach labs in those subjects at Saint Mary’s University. I am currently
+in the process of applying to graduate programs in Economics. My end
+goal is to finish a PhD in Economics and receive a position as a
+assistant professor.</p>
+<hr />
+</div>
+<div id="education" class="section level3">
+<h3>Education</h3>
+<p>Curriculum Vitae: <a href="SimonRaymond_CV.pdf">View (PDF)</a></p>
+<hr />
+</div>
+<div id="public-projects" class="section level3">
+<h3>Public Projects</h3>
+<p>I am a research assistant for Dr. Yigit Aydede at Saint Mary’s
+University. We are currently working on projects that use shiny apps to
+visualize and analyse data. Two such apps are: <a
+href="https://hood.novastorms.com/">hood.novastorms.com</a> and <a
+href="https://safe.novastorms.com/">safe.novastorms.com</a>. In these
+projects my roles range from analyzing and cleaning data to dealing with
+the UI and server code for displayment.</p>
+<hr />
+</div>
+<div id="personal-projects-in-development" class="section level3">
+<h3>Personal Projects In Development</h3>
+<p>The following bookdown is a small collection of basic codes that I
+personally use as a baseline when I approach a project. This was put
+together in the summer of 2024 and is written with the intent of my
+personal use. While there is little context in the bookdown which makes
+it not useful for the public, It can be used as a reference for basic
+code in R and show some of my fundamental skills. <a
+href="https://simonraymond2003.github.io/MachineLearning/">Personal ML
+Baseline</a></p>
+<p>As a part of my Honours Project I have put together a shiny app that
+displays different types of NFL play by play and weekly data I am
+working with and merging together. You can explore the data here: <a
+href="https://jzmtko-yigit-aydede.shinyapps.io/NFL_4th_Down_App/">NFL
+4th Down Analysis (2016-2023)</a></p>
+<hr />
+</div>
+<div id="honours-thesis" class="section level3">
+<h3>Honours Thesis</h3>
+<p>My Honour Thesis looks to find contributing factors to a NFL team’s
+success on 4th down attempts. This reaseach will advance the data
+quality in our current literature, help NFL teams make better in-game
+decisions, and help identify specialty players. Here is my current
+proposal and beginning analysis.</p>
+<p><a href="Proposal_v1.pdf"><em>“A Predictive and Casual Analysis of
+Contributing Factors for 4th Down Attempt Conversions in the
+NFL”</em></a></p>
+</div>
+</div>
+</div>
+
+
+
 
 </div>
 
@@ -371,35 +387,6 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
-<script>
-$(document).ready(function ()  {
-
-    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
-    $('.unlisted.unnumbered').addClass('toc-ignore')
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
