@@ -77,7 +77,7 @@ The following bookdown is a small collection of basic codes that I personally us
 
 As a part of my Honours Project I have put together a shiny app that displays different types of NFL play by play and weekly data I am working with and merging together. You can explore the data here: [NFL 4th Down Analysis (2016-2023)](https://jzmtko-yigit-aydede.shinyapps.io/NFL_4th_Down_App/)
 
-------------------
+------------------ 
 
 ### Honours Thesis
 My Honour Thesis looks to find contributing factors to a NFL team's success on 4th down attempts. This reaseach will advance the data quality in our current literature, help NFL teams make better in-game decisions, and help identify specialty players. Here is my current proposal and beginning analysis.  
