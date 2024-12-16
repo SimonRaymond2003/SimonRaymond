@@ -84,7 +84,9 @@ As a part of my Honours Project I have put together a shiny app that displays di
 ### Honours Thesis
 My Honour Thesis looks to find contributing factors to a NFL team's success on 4th down attempts. This reaseach will advance the data quality in our current literature, help NFL teams make better in-game decisions, and help identify specialty players. Here is my current proposal and beginning analysis.  
 
-[*"A Predictive and Casual Analysis of Contributing Factors for 4th Down Attempt Conversions in the NFL"*](Proposal_v1.pdf)
+View as a PDF: [*"A Predictive and Casual Analysis of Contributing Factors for 4th Down Attempt Conversions in the NFL"*](Proposal_v1.pdf)
+
+View as a HTML: [*"A Predictive and Casual Analysis of Contributing Factors for 4th Down Attempt Conversions in the NFL"*](https://simonraymond2003.github.io/ProposalPage/)
 
 ------------------
 
