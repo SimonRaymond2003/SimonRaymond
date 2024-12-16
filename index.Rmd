@@ -56,7 +56,7 @@ name: SimonRaymond
 </div>
 <div class="main-content">
 
-### About Me
+### About Myself
 I am finishing my fourth year of my undergraduate degree at Saint Mary's University in Halifax NS. I am Majoring in Honors Economics. I specifically am interested in Econometrics and Machine learning and teach labs in those subjects at Saint Mary's University. I am currently in the process of applying to graduate programs in Economics. My end goal is to finish a PhD in Economics and receive a position as a assistant professor.
 
 ------------------
