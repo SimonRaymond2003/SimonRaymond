@@ -84,11 +84,16 @@ As a part of my Honours Project I have put together a shiny app that displays di
 ### Honours Thesis
 My Honour Thesis looks to find contributing factors to a NFL team's success on 4th down attempts. This reaseach will advance the data quality in our current literature, help NFL teams make better in-game decisions, and help identify specialty players. Here is my current proposal and beginning analysis.  
 
-View as a PDF: [*"A Predictive and Causal Analysis of Contributing Factors for 4th Down Attempt Conversions in the NFL"*](Proposal_v1.pdf)
-
 View as a HTML: [*"A Predictive and Causal Analysis of Contributing Factors for 4th Down Attempt Conversions in the NFL"*](https://simonraymond2003.github.io/ProposalPage/)
 
 Results: [*"Results in Progress"*](https://simonraymond2003.github.io/rmd_results/index.html)
+
+------------------
+
+### Talks & Presentations
+
+- **AI in Action** (March 2025) - Presented on applications of machine learning in economic analysis and forecasting.
+  <img src="WhatsApp Image 2025-03-05 at 12.59.59.jpeg" alt="AI in Action Talk" style="max-width: 100%; border-radius: 5px; margin: 10px 0;">
 
 ------------------
 
