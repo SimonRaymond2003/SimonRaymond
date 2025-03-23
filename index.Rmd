@@ -92,7 +92,7 @@ Results: [*"Results in Progress"*](https://simonraymond2003.github.io/rmd_result
 
 ### Talks & Presentations
 
-- **AI in Action** (March 2025) - Presented on applications of machine learning in economic analysis and forecasting.
+- **AI in Action** (March 2025) - Presented on applications of "AI in Action".
   <img src="WhatsApp Image 2025-03-05 at 12.59.59.jpeg" alt="AI in Action Talk" style="max-width: 100%; border-radius: 5px; margin: 10px 0;">
 
 ------------------
