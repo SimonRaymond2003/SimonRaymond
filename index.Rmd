@@ -52,7 +52,7 @@ title: "Simon Raymond: Student & Data Analyst in Econometrics and Machine Learni
 <img src="Photo.jpeg" alt="Simon Raymond" class="profile-img">
 <div class="contact-info">
 **Location**: Halifax, Nova Scotia  
-**Email**: simon.raymond@smu.ca  
+**Email**: simon.raymond@uwaterloo.ca  
 **GitHub**: [SimonRaymond2003](https://github.com/SimonRaymond2003)
 </div>
 </div>
