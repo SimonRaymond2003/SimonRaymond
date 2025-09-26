@@ -1,0 +1,58 @@
+---
+title: "Research & Projects"
+output: 
+ html_document:
+   theme: readable
+   highlight: tango
+---
+
+<style>
+.main-container {
+ max-width: 900px !important;
+ margin-left: auto;
+ margin-right: auto;
+ padding: 2em;
+}
+h2 {
+ text-align: center;
+ color: #2c3e50;
+ margin-top: 2em;
+ margin-bottom: 1em;
+}
+p {
+ text-align: justify;
+ line-height: 1.6;
+ margin-bottom: 1.5em;
+}
+</style>
+
+## Public Projects
+I was a research assistant for Dr. Yigit Aydede at Saint Mary's University. We worked on projects that used shiny and react apps to visualize and analyse data. In these projects my roles range from analyzing and cleaning data to dealing with the UI and server code for displayment. For more information on the type of work I did visit [Nova Storms AI](https://novastorms.ai/).
+
+## Personal Projects
+The following bookdown is a small collection of basic codes that I personally use as a baseline when I approach a project. This was put together in the summer of 2024 and is written with the intent of my personal use. While there is little context in the bookdown which makes it not useful for the public, It can be used as a reference for basic code in R and show some of my fundamental skills. [Personal ML Baseline](https://simonraymond2003.github.io/MachineLearning/)
+
+As a part of my Honours Project I have put together a shiny app that displays different types of NFL play by play and weekly data I am working with and merging together. The link unavailable to the public due to data licensing restrictions. For academic access please contact me via email.
+
+## Publications and Working Papers
+
+- Myself and Dr. Nicholas Manuel are currently looking to publish a refined version of [Fourth Downs Decoded (PDF)](https://library2.smu.ca/handle/01/9003/browse?type=author&value=Raymond%2C+Simon)
+
+- Looking to create a predictive method to represent Nash Equilibrium in Poker.
+
+## Talks & Presentations
+
+**AI in Action** (March 2025) - Presented on applications of "AI in Action".
+
+<img src="WhatsApp Image 2025-03-05 at 12.59.59.jpeg" alt="AI in Action Talk" style="max-width: 30%; border-radius: 5px; margin: 10px 0; display: block;">
+
+View the related article [here](https://news.smu.ca/news/2025/4/29/halifax-high-schoolers-gain-skills-in-ai-at-smu).
+
+**CBC Radio Interview** - Listen to my interview about agentic AI at the Atlantic Canadian AI Summit:
+
+<audio controls style="margin: 10px 0; width: 100%; max-width: 500px;">
+  <source src="RPReplay_Final1746125414.m4a" type="audio/mp4">
+  Your browser does not support the audio element.
+</audio>
+
+

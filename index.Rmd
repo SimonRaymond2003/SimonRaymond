@@ -3,52 +3,39 @@ output:
  html_document:
    theme: readable
    highlight: tango
-navbar:
- left:
-   - text: "Home"
-     href: index.html
-name: SimonRaymond
-title: "Simon Raymond: Student & Data Analyst in Econometrics and Machine Learning"
-
 ---
 
 <style>
 .main-container {
- max-width: 1400px !important;
+ max-width: 1200px !important;
  margin-left: auto;
  margin-right: auto;
  padding: 1em;
 }
-.custom-container {
+.content-layout {
  display: grid;
- grid-template-columns: 3fr 7fr;
+ grid-template-columns: 300px 1fr;
  gap: 2em;
- width: 100%;
+ margin-top: 2em;
 }
-.side-panel {
+.profile-img {
+ width: 300px;
+ height: 300px;
+ object-fit: cover;
+ border-radius: 8px;
+}
+.sidebar {
  background-color: #f8f9fa;
  padding: 1.5em;
  border-radius: 8px;
- position: sticky;
- top: 2em;
  height: fit-content;
- margin-left: 0;
-}
-.profile-img {
- width: 100%;
- border-radius: 8px;
- margin-bottom: 1em;
-}
-.main-content {
- padding-left: 1em;
-}
-.contact-info {
- margin-top: 1em;
 }
 </style>
 
-<div class="custom-container">
-<div class="side-panel">
+### Simon Raymond - Econometrics and Machine Learning
+
+<div class="content-layout">
+<div class="sidebar">
 <img src="Photo.jpeg" alt="Simon Raymond" class="profile-img">
 <div class="contact-info">
 **Location**: Halifax, Nova Scotia  
@@ -56,48 +43,15 @@ title: "Simon Raymond: Student & Data Analyst in Econometrics and Machine Learni
 **GitHub**: [SimonRaymond2003](https://github.com/SimonRaymond2003)
 </div>
 </div>
-<div class="main-content">
+<div>
 
 ### About Myself
-I recently completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics and machine learning, and had the opportunity to teach labs in these subjects. I'm now pursuing my MA in Economics at the University of Waterloo, where my research focuses on sports economics and game theory. My long-term goal remains to complete a PhD in Economics and secure a position as an assistant professor.
-
-------------------
+In 2025 I completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics and machine learning, and had the opportunity to teach labs in these subjects. I'm now pursuing my MA in Economics at the University of Waterloo, where my research focuses on sports economics and game theory. My long-term goal remains to complete a PhD in Economics and secure a position as an assistant professor.
 
 ### Education
-Curriculum Vitae: [View (PDF)](CV_PDF.pdf)
+Currently pursuing MA in Economics at University of Waterloo
 
-------------------
-
-### Public Projects
-I was a research assistant for Dr. Yigit Aydede at Saint Mary's University. We worked on projects that use shiny apps to visualize and analyse data. Two such apps are: [hood.novastorms.com](https://hood.novastorms.com/) and [safe.novastorms.com](https://safe.novastorms.com/). In these projects my roles range from analyzing and cleaning data to dealing with the UI and server code for displayment.
-
-------------------
-
-### Personal Projects In Development
-The following bookdown is a small collection of basic codes that I personally use as a baseline when I approach a project. This was put together in the summer of 2024 and is written with the intent of my personal use. While there is little context in the bookdown which makes it not useful for the public, It can be used as a reference for basic code in R and show some of my fundamental skills. [Personal ML Baseline](https://simonraymond2003.github.io/MachineLearning/)
-
-
-As a part of my Honours Project I have put together a shiny app that displays different types of NFL play by play and weekly data I am working with and merging together. You can explore the data here: NFL 4th Down Analysis (2016-2023)(Link unavailable to the public. Please contact me for access.)
-
------------------- 
-
-### Honours Thesis
-My Honour Thesis looks to find contributing factors to a NFL team's success on 4th down attempts. This reaseach will advance the data quality in our current literature, help NFL teams make better in-game decisions, and help identify specialty players. Here is my submitted version: [Fourth Downs Decoded (PDF)](Honours_Thesis_Simon_Raymond.pdf).
-
-------------------
-
-### Talks & Presentations
-
-- **CBC Radio Interview** - Listen to my interview about agentic AI at the Atlantic Canadian AI Summit:
-  <audio controls>
-    <source src="RPReplay_Final1746125414.m4a" type="audio/mp4">
-    Your browser does not support the audio element.
-  </audio>
-
-- **AI in Action** (March 2025) - Presented on applications of "AI in Action".
-  <img src="WhatsApp Image 2025-03-05 at 12.59.59.jpeg" alt="AI in Action Talk" style="max-width: 50%; border-radius: 5px; margin: 10px 0;">
-
-------------------
+Completed Honors Economics at Saint Mary's University, Halifax, NS
 
 *For any more information on my work please reach out to me via email*
 

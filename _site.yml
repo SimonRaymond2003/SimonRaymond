@@ -2,9 +2,10 @@ name: "Simon Raymond"
 navbar:
   title: "Simon Raymond"
   left:
-    - text: "Home"
+    - text: "About Myself"
       href: index.html
-      name: SimonRaymondPage
+    - text: "Research & Projects"
+      href: research.html
+    - text: "CV"
+      href: cv.html
 output_dir: docs
-
-

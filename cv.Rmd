@@ -1,0 +1,46 @@
+---
+title: "Curriculum Vitae"
+output: 
+ html_document:
+   theme: readable
+   highlight: tango
+---
+
+<style>
+.main-container {
+ max-width: 900px !important;
+ margin-left: auto;
+ margin-right: auto;
+ padding: 2em;
+ text-align: center;
+}
+h3 {
+ color: #2c3e50;
+ margin-bottom: 2em;
+}
+.cv-section {
+ margin: 3em 0;
+ padding: 2em;
+ background-color: #f8f9fa;
+ border-radius: 8px;
+}
+.cv-link {
+ font-size: 1.1em;
+ display: inline-block;
+ margin: 1em 0;
+}
+</style>
+
+<div class="cv-section">
+
+### My CV
+
+You can view my curriculum vitae here:
+
+<div class="cv-link">
+[View CV (PDF)](CV_PDF.pdf)
+</div>
+
+*Last updated: 2025*
+
+</div>
