@@ -263,22 +263,31 @@ $(document).ready(function () {
  padding: 1em;
 }
 .content-layout {
- display: grid;
- grid-template-columns: 300px 1fr;
- gap: 2em;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
  margin-top: 2em;
 }
 .profile-img {
- width: 300px;
- height: 300px;
+ width: 400px;
+ height: 400px;
  object-fit: cover;
  border-radius: 8px;
+ margin: 0 auto 2em auto;
+ display: block;
+ border: 3px solid #ddd;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .sidebar {
- background-color: #f8f9fa;
- padding: 1.5em;
- border-radius: 8px;
- height: fit-content;
+ width: 100%;
+ max-width: 800px;
+ text-align: center;
+ margin-bottom: 2em;
+}
+.content-section {
+ width: 100%;
+ max-width: 800px;
+ text-align: left;
 }
 </style>
 <div id="simon-raymond---econometrics-and-machine-learning"
@@ -295,7 +304,7 @@ class="email">simon.raymond@uwaterloo.ca</a><br />
 href="https://github.com/SimonRaymond2003">SimonRaymond2003</a></p>
 </div>
 </div>
-<div>
+<div class="content-section">
 <div id="about-myself" class="section level3">
 <h3>About Myself</h3>
 <p>In 2025 I completed my fourth year of my undergraduate degree in

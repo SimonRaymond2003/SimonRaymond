@@ -13,22 +13,31 @@ output:
  padding: 1em;
 }
 .content-layout {
- display: grid;
- grid-template-columns: 300px 1fr;
- gap: 2em;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
  margin-top: 2em;
 }
 .profile-img {
- width: 300px;
- height: 300px;
+ width: 400px;
+ height: 400px;
  object-fit: cover;
  border-radius: 8px;
+ margin: 0 auto 2em auto;
+ display: block;
+ border: 3px solid #ddd;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .sidebar {
- background-color: #f8f9fa;
- padding: 1.5em;
- border-radius: 8px;
- height: fit-content;
+ width: 100%;
+ max-width: 800px;
+ text-align: center;
+ margin-bottom: 2em;
+}
+.content-section {
+ width: 100%;
+ max-width: 800px;
+ text-align: left;
 }
 </style>
 
@@ -43,7 +52,7 @@ output:
 **GitHub**: [SimonRaymond2003](https://github.com/SimonRaymond2003)
 </div>
 </div>
-<div>
+<div class="content-section">
 
 ### About Myself
 In 2025 I completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics and machine learning, and had the opportunity to teach labs in these subjects. I'm now pursuing my MA in Economics at the University of Waterloo, where my research focuses on sports economics and game theory. My long-term goal remains to complete a PhD in Economics and secure a position as an assistant professor.
