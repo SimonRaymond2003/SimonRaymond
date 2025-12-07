@@ -38,7 +38,7 @@ h3 {
 You can view my curriculum vitae here:
 
 <div class="cv-link">
-[View CV (PDF)](CV_PDF.pdf)
+[View CV (PDF)](WEBSITE_CV.pdf)
 </div>
 
 *Last updated: 2025*
