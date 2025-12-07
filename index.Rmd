@@ -41,7 +41,7 @@ output:
 }
 </style>
 
-### Simon Raymond - Econometrics and Machine Learning
+### Simon Raymond - MA in Economics Student
 
 <div class="content-layout">
 <div class="sidebar">
@@ -55,7 +55,7 @@ output:
 <div class="content-section">
 
 ### About Myself
-In 2025 I completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics and machine learning, and had the opportunity to teach labs in these subjects. I'm now pursuing my MA in Economics at the University of Waterloo, where my research focuses on sports economics and game theory. My long-term goal remains to complete a PhD in Economics and secure a position as an assistant professor.
+In 2025 I completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics, machine learning and labour economics. I'm now pursuing my MA in Economics at the University of Waterloo, where my current research is in labour and sports economics. My long-term goal is to complete a PhD in Economics and secure a position as an assistant professor.
 
 ### Education
 Currently pursuing MA in Economics at University of Waterloo
