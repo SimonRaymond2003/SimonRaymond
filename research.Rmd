@@ -27,7 +27,7 @@ p {
 
 ## Personal Projects
 
-The following bookdown is a small collection of basic codes that can be use as a baseline when to approach machine learning projects. This was put together in my third year of my undergraduate degree. [Personal ML Baseline](https://simonraymond2003.github.io/MachineLearning/)
+The following bookdown is a small collection of basic codes that can be used as a baseline when to approach machine learning projects. This was put together in my third year of my undergraduate degree. [Personal ML Baseline](https://simonraymond2003.github.io/MachineLearning/)
 
 ## Publications, Working Papers and Research in Progress
 
