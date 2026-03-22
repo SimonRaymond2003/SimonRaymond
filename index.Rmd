@@ -47,7 +47,7 @@ output:
 <div class="sidebar">
 <img src="Photo.jpeg" alt="Simon Raymond" class="profile-img">
 <div class="contact-info">
-**Location**: Halifax, Nova Scotia  
+**Location**: Waterloo, Ontario  
 **Email**: simon.raymond@uwaterloo.ca  
 **GitHub**: [SimonRaymond2003](https://github.com/SimonRaymond2003)
 </div>
