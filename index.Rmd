@@ -47,23 +47,16 @@ output:
 <div class="sidebar">
 <img src="Photo.jpeg" alt="Simon Raymond" class="profile-img">
 <div class="contact-info">
-**Location**: Waterloo, Ontario  
-**Email**: simon.raymond@uwaterloo.ca  
+**Location**: Montreal, Quebec  
+**Email**: simon.raymond@mail.mcgill.ca
 **GitHub**: [SimonRaymond2003](https://github.com/SimonRaymond2003)
 </div>
 </div>
 <div class="content-section">
 
 ### About Myself
-In 2025 I completed my fourth year of my undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS. During my time there, I developed a strong interest in econometrics, machine learning and labour economics. I'm now pursuing my MA in Economics at the University of Waterloo, where my current research is in labour and sports economics. In the fall of 2026 I will begin my PhD in Economics at McGill University. 
 
-### Education
-
-Incoming Economics PhD Student at McGill University
-
-Currently pursuing MA in Economics at University of Waterloo
-
-Completed Honors Economics at Saint Mary's University, Halifax, NS
+I am a PhD student in Economics at McGill University. My research interests include both labour and sports economics. I am especially accustomed to using machine learning techniques to support my causal research. I have also preformed research on short-term rental markets and the economic impacts of the art industry in Canada. I have completed my MA in Economics at the University of Waterloo and my Undergraduate degree in Honors Economics at Saint Mary's University in Halifax, NS.
 
 *For any more information on my work please reach out to me via email*
 

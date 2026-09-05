@@ -26,6 +26,8 @@ p {
 
 ## Publications, Working Papers and Research in Progress
 
-- **Submitted**: *Fourth Downs Decoded: A Selection-Bias-Corrected Study of Player Impact on Fourth Down Conversions in the NFL* [PDF](Fourth Downs Decoded.pdf)
+- **Accepted, JSE**: *Fourth Downs Decoded: A Selection-Bias-Corrected Study of Player Impact on Fourth Down Conversions in the NFL* [PDF](Fourth Downs Decoded.pdf)
 
 - **Working Paper**: *Mixed Opinions, Positive Returns: Explaining Nike Stock Returns Using LLM-Based Sentiment Analysis of Athlete Media Coverage* [PDF](Raymond-21220958-FinalProject.pdf)
+
+- **Working Paper**: *A Play-by-Play Analysis of Attendance Effects in College Football* [PDF](Simon Raymond MRP August 18th.pdf)
